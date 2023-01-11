@@ -1,24 +1,27 @@
 <script>
-import { signIn } from "./../services/authAPI";
-import { setAuthToken } from "./../utils/storage";
+import { signIn } from './../services/authAPI';
+import { setAuthToken } from './../utils/storage';
 export default {
   data() {
     return {
       credential: {
-        email: "Chi.NN1@sis.hust.edu.vn",
-        password: "password",
+        email: 'Chi.NN1@sis.hust.edu.vn',
+        password: 'password',
       },
+      isLoading: false,
     };
   },
   methods: {
     submitAuth() {
+      this.isLoading = true;
       signIn(this.credential)
         .then(({ data }) => {
           setAuthToken(data);
-          this.$router.push({ path: "/", replace: true });
+          this.$router.push({ path: '/', replace: true });
         })
-        .catch((error) => {
-          console.log(error);
+        .catch(() => {})
+        .finally(() => {
+          this.isLoading = false;
         });
     },
   },

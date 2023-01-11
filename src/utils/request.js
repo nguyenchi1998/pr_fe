@@ -1,18 +1,27 @@
 import axios from 'axios';
-import { API_URL } from '../config';
-import { INTERNAL_ERROR, PAGE_NOT_FOUND, UNAUTHORIZED } from './../config/API_CODES'
-import { getAccessToken } from './../utils/storage';
+import { API_URL, AUTH_URL } from '../config';
+import {
+  INTERNAL_ERROR,
+  PAGE_NOT_FOUND,
+  UNAUTHORIZED,
+} from './../config/API_CODES';
+import {
+  getAccessToken,
+  getRefreshToken,
+  removeAuthToken,
+  setAccessToken,
+} from './../utils/storage';
 
 export const handle500Error = () => {
-  window.location.href = `${process.env.PUBLIC_URL}/500`;
+  window.location.href = `/500`;
 };
 
 export const handle404Error = () => {
-  window.location.href = `${process.env.PUBLIC_URL}/404`;
+  window.location.href = `/404`;
 };
 
 export const redirectSignIn = () => {
-  window.location.href = `${process.env.PUBLIC_URL}/login`;
+  window.location.href = `/login`;
 };
 
 const getNewToken = () => {
@@ -24,7 +33,7 @@ const getNewToken = () => {
   });
   return new Promise((resolve, reject) => {
     instance
-      .post(AUTH_API.REFRESH_TOKEN, { refresh: getRefreshToken() })
+      .post(AUTH_URL.REFRESH_TOKEN, { refresh: getRefreshToken() })
       .then((response) => {
         const newToken = response.data.access;
         setAccessToken(newToken);
@@ -51,7 +60,7 @@ export const request = (responseType = 'json') => {
   });
   instance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       if (error.response) {
         if (error.response.status === PAGE_NOT_FOUND) {
           // handle404Error();
@@ -63,15 +72,14 @@ export const request = (responseType = 'json') => {
         }
         if (
           error.response.status !== UNAUTHORIZED ||
-          error.config.url === AUTH_API.SIGN_IN
+          error.config.url === AUTH_URL.SIGN_IN
         ) {
           return Promise.reject(error);
         }
-        return getNewToken().then((token) => {
-          const { config } = error;
-          config.headers.Authorization = `Bearer ${token}`;
-          return axios.request(config);
-        });
+        const token = await getNewToken();
+        const { config } = error;
+        config.headers.Authorization = `Bearer ${token}`;
+        return await axios.request(config);
       }
       // removeAuthToken();
       return Promise.reject(error);

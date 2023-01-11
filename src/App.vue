@@ -1,21 +1,9 @@
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
-import { RouterView } from "vue-router";
-import { mapActions } from "vuex";
-import * as authAPI from "./services/authAPI";
+import { RouterView } from 'vue-router';
 
 export default {
   components: {
     RouterView,
-  },
-  created() {
-    this.fetchAuth();
-  },
-  methods: {
-    ...mapActions(["setAuth"]),
-    async fetchAuth() {
-      this.setAuth(await authAPI.fetchAuthUser());
-    },
   },
 };
 </script>

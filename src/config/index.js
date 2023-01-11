@@ -4,9 +4,9 @@ export const API_VERSION = import.meta.env.VITE_APP_API_VERSION;
 
 export const API_URL = `${API_HOST}:${API_PORT}/${API_VERSION}`;
 
-export const AUTH_API = {
+export const AUTH_URL = {
   SIGN_IN: `/auth/login`,
   REFRESH_TOKEN: `/auth/token/refresh`,
   SIGN_UP: `/auth/register`,
-  FETCH_AUTH: '/auth/profile'
-}
+  FETCH_AUTH: '/auth/profile',
+};

@@ -1,13 +1,17 @@
-import { baseRequest, request } from "../utils/request";
-import { getAccessToken, removeAuthToken, setAuthToken } from "../utils/storage";
-import { AUTH_API } from './../config'
+import { baseRequest, request } from '../utils/request';
+import {
+  getAccessToken,
+  removeAuthToken,
+  setAuthToken,
+} from '../utils/storage';
+import { AUTH_URL } from './../config';
 
 export const isAuthenticated = () => !!getAccessToken();
 
 export const signIn = (credential) => {
   return new Promise((resolve, reject) => {
     baseRequest()
-      .post(AUTH_API.SIGN_IN, credential)
+      .post(AUTH_URL.SIGN_IN, credential)
       .then((response) => {
         setAuthToken(response.data);
         return resolve(response);
@@ -19,7 +23,7 @@ export const signIn = (credential) => {
 };
 
 export const fetchAuthUser = async () => {
-  const { data } = await request().get(AUTH_API.FETCH_AUTH);
+  const { data } = await request().get(AUTH_URL.FETCH_AUTH);
 
   return data;
 };
@@ -41,7 +45,7 @@ export const changePassword = (credential, userId) => {
 export const signUp = (credential) => {
   return new Promise((resolve, reject) => {
     baseRequest()
-      .post(AUTH_API.SIGN_UP, credential)
+      .post(AUTH_URL.SIGN_UP, credential)
       .then((response) => {
         return resolve(response);
       })
@@ -53,5 +57,4 @@ export const signUp = (credential) => {
 
 export const signOut = () => {
   removeAuthToken();
-  window.location.reload();
 };
