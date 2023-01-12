@@ -8,9 +8,18 @@ import './../assets/dist/css/custom.css';
 import NavBar from './Navbar.vue';
 import * as authAPI from './../services/authAPI';
 import { mapActions } from 'vuex';
-import { MY_CREDIT_CLASS_PAGE } from '../routes';
+import {
+  MY_CREDIT_CLASS_PAGE,
+  REGISTER_CREDIT_CLASS_PAGE,
+} from './../config/constants';
+import { PAGE_PATH } from './../main';
 
 export default {
+  data() {
+    return {
+      PAGE_PATH: PAGE_PATH,
+    };
+  },
   components: {
     RouterView,
     NavBar,
@@ -29,7 +38,8 @@ export default {
   methods: {
     ...mapActions(['setAuth']),
     async fetchAuth() {
-      this.setAuth(await authAPI.fetchAuthUser());
+      const auth = await authAPI.fetchAuthUser();
+      await this.setAuth(auth);
     },
   },
 };
@@ -37,17 +47,19 @@ export default {
 <template>
   <aside class="main-sidebar">
     <div>
-      <div class="d-flex justify-content-center align-items-center">
+      <div class="px-2 d-flex justify-contents-between align-items-center">
         <img
-          src="./../assets/dist/img/logo.png"
-          width="100"
-          height="100"
+          src="./../assets/logo.png"
+          width="80"
           alt=""
-          class="rounded"
+          class="img-fluid profile-image-pic img-thumbnail my-3"
         />
-        <div class="h4 text-capitalize mb-0">Đăng kí tín chỉ</div>
+        <div class="ml-2 h3 text-capitalize mb-0">Đăng kí tín chỉ</div>
       </div>
-      <ul class="pr-3">
+      <div class="text-center h4" v-if="isCreditClassPage">
+        Thông tin sinh viên
+      </div>
+      <ul class="pr-4">
         <template v-if="isCreditClassPage">
           <li>
             Mã sinh viên:
@@ -61,50 +73,54 @@ export default {
               {{ auth?.name }}
             </b>
           </li>
-          <li>
-            Lớp:
-            <b v-if="auth?.general_class">
-              {{ auth.general_class.name }}
-            </b>
-          </li>
-          <li>
+          <template v-if="auth?.general_class">
+            <li>
+              Lớp:
+              <b>
+                {{ auth.general_class.name }}
+              </b>
+            </li>
+            <li>
+              Ngành học:
+              <b v-if="auth.general_class?.training_program">
+                {{ auth.general_class.training_program.name }}
+              </b>
+            </li>
+          </template>
+          <li v-if="auth?.major">
             Chuyên ngành:
-            <b v-if="auth?.major">
+            <b>
               {{ auth.major.name }}
             </b>
           </li>
-          <li>
-            Ngành học:
-            <b
-              v-if="auth?.general_class && auth.general_class?.training_program"
-            >
-              {{ auth.general_class.training_program.name }}
-            </b>
+          <template v-if="auth?.learning_alert">
+            <li>
+              Số tín chỉ tối thiểu:
+              <b>{{ auth.learning_alert.min_register_credit }}</b>
+            </li>
+            <li>
+              Số tín chỉ tối đa:
+              <b>
+                {{ auth.learning_alert.max_register_credit }}
+              </b>
+            </li>
+            <li>
+              Cảnh báo học tập:
+              <b>
+                {{ auth.learning_alert.name }}
+              </b>
+            </li>
+          </template>
+          <li class="text-capitalize pt-5">
+            <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
+              Đăng ký tín chỉ
+            </router-link>
           </li>
-          <li>
-            Số tín chỉ tối thiểu:
-            <b v-if="auth?.learning_alert">{{
-              auth.learning_alert.min_register_credit
-            }}</b>
-          </li>
-          <li>
-            Số tín chỉ tối đa:
-            <b v-if="auth?.learning_alert">
-              {{ auth.learning_alert.max_register_credit }}
-            </b>
-          </li>
-          <li>
-            Cảnh báo học tập:
-            <b v-if="auth?.learning_alert">
-              {{ auth.learning_alert.name }}
-            </b>
-          </li>
-          <li class="text-capitalize pt-3">
-            <router-link to="/credit-class">Đăng ký tín chỉ </router-link>
-          </li></template
-        >
-        <li v-else class="text-capitalize pt-3">
-          <router-link to="/">Quay lại trang đăng ký sinh viên</router-link>
+        </template>
+        <li v-else class="text-capitalize pt-5">
+          <router-link :to="PAGE_PATH.MY_CREDIT_CLASS_PAGE">
+            Quay lại trang đăng ký sinh viên
+          </router-link>
         </li>
       </ul>
     </div>
@@ -112,7 +128,6 @@ export default {
   <main>
     <div class="content-wrapper">
       <NavBar />
-
       <router-view></router-view>
     </div>
   </main>

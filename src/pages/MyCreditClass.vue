@@ -1,26 +1,32 @@
 <script>
 import creditClassAPI from './../services/creditClassAPI';
-import * as _ from 'lodash';
 import { removeEmptyObjects } from './../utils/helper';
-const DELETE_ACTION = 'Delete';
-const INSERT_ACTION = 'Insert';
+const DELETE_ACTION = 'delete';
+const INSERT_ACTION = 'insert';
 const SUCCESS_ACTION_STATUS = 'Thành công';
-const FAIL_ACTION_STATUS = 'Thất bại';
 import {
   CREDIT_CLASS_STATUS,
   CREDIT_CLASS_TYPE,
   WEEKDAYS,
 } from '../config/constants.js';
+import { createToast } from 'mosha-vue-toastify';
+import Swal from 'sweetalert2';
+
+const ACTION_LABEL = {
+  [INSERT_ACTION]: 'Đăng ký',
+  [DELETE_ACTION]: 'Hủy đăng ký',
+};
 
 export default {
   data() {
     return {
       isLoadingData: false,
+      isFindLoading: false,
       message: {
         success: '',
         content: '',
       },
-      classId: '',
+      classCode: '',
       filter: {
         class_code: '',
         subject_code: '',
@@ -32,12 +38,13 @@ export default {
         registered_student: '',
       },
       creditClasses: [],
-      classIds: [],
+      classCodes: [],
       progress: false,
       CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       WEEKDAYS: WEEKDAYS,
       INSERT_ACTION: INSERT_ACTION,
+      ACTION_LABEL: ACTION_LABEL,
     };
   },
   computed: {
@@ -47,10 +54,12 @@ export default {
         0,
       );
     },
+    querySearch() {
+      return removeEmptyObjects(this.filter);
+    },
   },
   created() {
-    const filter = removeEmptyObjects(this.filter);
-    this.fetchMyCreditClasses(filter);
+    this.fetchMyCreditClasses();
   },
   beforeRouteLeave(_to, _from, next) {
     if (this.progress) {
@@ -60,22 +69,34 @@ export default {
     }
   },
   methods: {
-    fetchMyCreditClasses: async function (querySearch) {
+    fetchMyCreditClasses: function () {
       this.isLoadingData = true;
-      const filter = removeEmptyObjects(querySearch);
-      const { data } = await creditClassAPI.fetchMyCreditClass(filter);
-      this.creditClasses = data.map((item) => ({
-        ...item,
-        action: '',
-        action_status: SUCCESS_ACTION_STATUS,
-      }));
-      this.isLoadingData = false;
+      creditClassAPI
+        .fetchMyCreditClass(this.querySearch)
+        .then(({ data }) => {
+          this.creditClasses = data.map((item) => ({
+            ...item,
+            action: '',
+            action_status: SUCCESS_ACTION_STATUS,
+          }));
+          this.isLoadingData = false;
+        })
+        .catch(({ message }) => {
+          this.isLoadingData = false;
+          Swal.fire({
+            title: message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+          });
+        });
     },
     fetchCreditClass: function () {
-      if (this.classId) {
+      if (this.classCode) {
+        this.isFindLoading = true;
         creditClassAPI
-          .find(this.classId)
+          .find(this.classCode)
           .then(({ message, success, data }) => {
+            this.isFindLoading = false;
             if (!success) {
               this.message = {
                 success,
@@ -83,56 +104,86 @@ export default {
               };
               return;
             }
+            this.message = { success: false, content: '' };
             this.progress = true;
-            this.classId = '';
-            this.creditClasses = [
-              { ...data, action: INSERT_ACTION },
-              ...this.creditClasses,
-            ];
-          })
-          .catch(
-            ({
-              response: {
-                data: { message },
-              },
-            }) => {
+
+            if (this.creditClasses.find(({ code }) => code === data.code)) {
               this.message = {
                 success: false,
-                content: message,
+                content: 'Lớp đã tồn tại trong danh sách',
               };
-            },
-          );
+            } else {
+              this.creditClasses = [
+                { ...data, action: INSERT_ACTION },
+                ...this.creditClasses,
+              ];
+              this.classCode = '';
+            }
+          })
+          .catch(({ message, response, status }) => {
+            this.isFindLoading = false;
+            if (status)
+              this.message = {
+                success: false,
+                content: response?.data?.message,
+              };
+            Swal.fire({
+              title: message,
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          });
       }
     },
-    changeClassId({ target: { value } }) {
-      this.classId = value;
+    changeClassCode({ target: { value } }) {
+      const code = value.trim();
+      if (code === '') {
+        this.message = {
+          success: false,
+          message: '',
+        };
+      }
+      this.classCode = code;
     },
+
     removeClass() {
       this.progress = true;
       this.creditClasses = this.creditClasses.map((item) => ({
         ...item,
-        ...(this.classIds.includes(item.id) ? { action: DELETE_ACTION } : {}),
+        ...(this.classCodes.includes(item.code)
+          ? { action: DELETE_ACTION }
+          : {}),
       }));
     },
-    triggerCheck({ target: { checked } }, id) {
+    triggerCheck({ target: { checked } }, code) {
       if (checked) {
-        this.classIds = [...this.classIds, id];
+        this.classCodes = [...this.classCodes, code];
       } else {
-        this.classIds = this.classIds.filter((item) => item !== id);
+        this.classCodes = this.classCodes.filter((item) => item !== code);
       }
     },
-    submit() {
+    async submit() {
       if (confirm('Bạn có muốn gửi đăng ký về hệ thống không?')) {
-        this.creditClasses = this.creditClasses.map((item) => ({
-          ...item,
-          action: '',
-          action_status: SUCCESS_ACTION_STATUS,
-        }));
-        this.classIds = [];
-        this.message = {
-          success: true,
-          content: 'Đã gửi đăng ký. Xem kết quả trên giao diện',
-        };
+        creditClassAPI
+          .register({
+            creditClasses: this.creditClasses.map(({ action, code }) => ({
+              action,
+              code,
+            })),
+          })
+          .then(({ data }) => {
+            this.classCodes = [];
+            this.message = {
+              success: true,
+              content: 'Đã gửi đăng ký. Xem kết quả trên giao diện',
+            };
+            this.creditClasses = data.map((item) => ({
+              ...item,
+              action: '',
+              action_status: SUCCESS_ACTION_STATUS,
+            }));
+          })
+          .catch();
       }
     },
   },
@@ -162,12 +213,13 @@ export default {
                     type="text"
                     class="form-control"
                     placeholder="Nhập mã lớp"
-                    :value="classId"
-                    @change="changeClassId"
+                    :value="classCode"
+                    @change="changeClassCode"
                   />
                   <button
                     class="ml-2 btn btn-outline-info"
                     @click="fetchCreditClass"
+                    :disabled="isFindLoading"
                   >
                     ĐK lớp
                   </button>
@@ -209,7 +261,6 @@ export default {
                             <template v-if="creditClasses.length">
                               <template
                                 v-for="{
-                                  id,
                                   code,
                                   subject,
                                   type,
@@ -252,7 +303,9 @@ export default {
                                     }}
                                   </td>
                                   <td>{{ action_status }}</td>
-                                  <td>{{ action }}</td>
+                                  <td>
+                                    {{ ACTION_LABEL[action] }}
+                                  </td>
                                   <td>
                                     <div v-if="subject">
                                       {{ subject.credit }}
@@ -260,10 +313,10 @@ export default {
                                   </td>
                                   <td class="text-center">
                                     <input
-                                      :disabled="action === INSERT_ACTION"
                                       type="checkbox"
-                                      :checked="classIds.includes(id)"
-                                      @change="triggerCheck($event, id)"
+                                      class="checkbox-custom"
+                                      :checked="classCodes.includes(code)"
+                                      @change="triggerCheck($event, code)"
                                     />
                                   </td>
                                 </tr>
@@ -283,7 +336,7 @@ export default {
                                       class="btn btn-outline-danger"
                                       form="delete-class"
                                       @click="removeClass"
-                                      :disabled="!classIds.length"
+                                      :disabled="!classCodes.length"
                                     >
                                       Xóa các lớp đã chọn
                                     </button>
@@ -375,7 +428,7 @@ export default {
                   <div class="col-12 text-center">
                     <button
                       :disabled="!progress"
-                      class="btn btn-outline-primary"
+                      class="btn btn-primary"
                       @click="submit"
                     >
                       Gửi đăng ký
@@ -390,4 +443,9 @@ export default {
     </div>
   </div>
 </template>
-<style scoped></style>
+<style scoped>
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+}
+</style>

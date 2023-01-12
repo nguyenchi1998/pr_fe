@@ -18,8 +18,18 @@ const fetchMyCreditClass = async (filter) => {
   return data;
 };
 
-const find = async (id) => {
-  const { data } = await request().get(`${BASE_RESOURCE}/find/${id}`);
+const find = async (code) => {
+  const { data } = await request().post(`${BASE_RESOURCE}/find`, {
+    code: code,
+  });
+
+  return data;
+};
+
+const register = async (creditClasses) => {
+  const { data } = await request().post(`${BASE_RESOURCE}/register`, {
+    ...creditClasses,
+  });
 
   return data;
 };
@@ -28,4 +38,5 @@ export default {
   fetchCreditClass,
   fetchMyCreditClass,
   find,
+  register,
 };

@@ -1,6 +1,5 @@
 <script>
 import { signOut } from '../services/authAPI';
-import { MY_CREDIT_CLASS_PAGE } from './../routes';
 
 export default {
   methods: {

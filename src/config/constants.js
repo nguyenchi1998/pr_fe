@@ -1,10 +1,5 @@
 export const ACCESS_TOKEN = 'access_token';
 export const REFRESH_TOKEN = 'refresh_token';
-
-export const DATE_FORMAT = 'yyyy/MM/dd';
-
-export const CHOSEN_CLASS = 'chosen_class';
-
 export const CREDIT_CLASS_STATUS = [
   {
     label: 'Mở đăng ký',
@@ -35,7 +30,6 @@ export const CREDIT_CLASS_STATUS = [
     value: 7,
   },
 ];
-
 export const CREDIT_CLASS_TYPE = [
   {
     label: 'Lý thuyết',
@@ -78,7 +72,6 @@ export const CREDIT_CLASS_TYPE = [
     value: 8,
   },
 ];
-
 export const WEEKDAYS = [
   {
     label: 'Thứ 2',
@@ -109,3 +102,7 @@ export const WEEKDAYS = [
     value: 7,
   },
 ];
+
+export const REGISTER_CREDIT_CLASS_PAGE = 'REGISTER_CREDIT_CLASS_PAGE';
+export const MY_CREDIT_CLASS_PAGE = 'MY_CREDIT_CLASS_PAGE';
+export const LOGIN_PAGE = 'LOGIN_PAGE';

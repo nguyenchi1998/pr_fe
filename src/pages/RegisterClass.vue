@@ -7,14 +7,21 @@ import {
   CREDIT_CLASS_TYPE,
   WEEKDAYS,
 } from '../config/constants.js';
+import Paginate from 'vuejs-paginate-next';
+
 export default {
+  components: {
+    Paginate,
+  },
   data() {
     return {
       isLoadingData: false,
+      perPage: 3,
+      page: 1,
       filter: {
         class_code: '',
         subject_code: '',
-        subject_name: '',
+        subject_name: 'To',
         note: '',
         type: '',
         status: '',
@@ -37,6 +44,15 @@ export default {
     hasQuerySearch() {
       return !_.isEmpty(this.querySearch);
     },
+    creditClassPaginate() {
+      return this.creditClasses.slice(
+        (this.page - 1) * this.perPage,
+        this.page * this.perPage,
+      );
+    },
+    totalPage() {
+      return Math.ceil(this.creditClasses.length / this.perPage) ?? 0;
+    },
   },
   watch: {
     filter(newData, _oldData) {
@@ -53,6 +69,9 @@ export default {
     search: _.debounce(function ({ target: { value, name } }) {
       this.filter = { ...this.filter, [name]: value };
     }, 500),
+    changePage(page) {
+      this.page = page;
+    },
   },
 };
 </script>
@@ -69,9 +88,12 @@ export default {
               </h4>
             </div>
           </div>
-          <div class="card-body">
+          <div
+            class="card-body overflow-auto"
+            :class="isLoadingData ? 'loading-opacity' : ''"
+          >
             <div style="position: relative">
-              <div v-if="isLoadingData" class="wrapper-loading">
+              <div v-if="isLoadingData" class="wrapper-loading loading">
                 <img src="./../assets/loading.gif" alt="" />
               </div>
               <div
@@ -144,7 +166,7 @@ export default {
                         weeks,
                         study_room,
                         time_frame,
-                      } in creditClasses"
+                      } in creditClassPaginate"
                     >
                       <tr class="table-secondary align-middle">
                         <th>
@@ -240,19 +262,35 @@ export default {
                     </template>
                   </tbody>
                 </table>
-                <paginate
-                  :page-count="20"
-                  :prev-text="'Prev'"
-                  :next-text="'Next'"
-                  :container-class="'className'"
-                >
-                </paginate>
               </div>
             </div>
+          </div>
+          <div
+            class="card-footer"
+            :class="isLoadingData ? 'loading-opacity' : ''"
+          >
+            <paginate
+              :page-count="totalPage"
+              :clickHandler="changePage"
+              :prev-text="'Prev'"
+              :next-text="'Next'"
+              :page-class="'page-item'"
+            >
+            </paginate>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-<style scoped></style>
+<style>
+.loading-opacity {
+  opacity: 0.5;
+}
+.loading {
+  opacity: 1;
+}
+.page-item {
+  cursor: pointer;
+}
+</style>
