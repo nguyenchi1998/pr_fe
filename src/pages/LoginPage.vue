@@ -16,7 +16,7 @@ export default {
     submitAuth() {
       this.isLoading = true;
       signIn(this.credential)
-        .then(({ data }) => {
+        .then(({ data: { data } }) => {
           setAuthToken(data);
           const { returnUrl } = this.$route.query;
           this.$router.replace({
@@ -95,6 +95,7 @@ export default {
 .btn-color {
   background-color: #0c2044;
   color: #fff;
+  border-color: #0c2044;
 }
 .profile-image-pic {
   height: 150px;

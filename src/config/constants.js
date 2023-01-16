@@ -103,6 +103,28 @@ export const WEEKDAYS = [
   },
 ];
 
+export const SUBJECT_RELATIONS = [
+  {
+    label: 'tương đương',
+    value: 0,
+    short: 'a'
+  }, {
+    label: 'tiên quyết',
+    value: 1,
+    short: 'b'
+  }, {
+    label: 'thay thế',
+    value: 2,
+    short: 'c'
+  }, {
+    label: 'song hành',
+    value: 3,
+    short: 'd'
+  }
+];
+
+
 export const REGISTER_CREDIT_CLASS_PAGE = 'REGISTER_CREDIT_CLASS_PAGE';
 export const MY_CREDIT_CLASS_PAGE = 'MY_CREDIT_CLASS_PAGE';
 export const LOGIN_PAGE = 'LOGIN_PAGE';
+export const REGISTER_SUBJECT_PAGE = 'REGISTER_SUBJECT_PAGE';

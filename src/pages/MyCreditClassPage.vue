@@ -1,6 +1,6 @@
 <script>
-import creditClassAPI from './../services/creditClassAPI';
-import { removeEmptyObjects } from './../utils/helper';
+import creditAPI from '../services/creditAPI';
+import { removeEmptyObjects } from '../utils/helper';
 const DELETE_ACTION = 'delete';
 const INSERT_ACTION = 'insert';
 const SUCCESS_ACTION_STATUS = 'Thành công';
@@ -57,6 +57,9 @@ export default {
     querySearch() {
       return removeEmptyObjects(this.filter);
     },
+    canRegisterClass() {
+      return this.$store.getters.selectCanRegisterClass;
+    },
   },
   created() {
     this.fetchMyCreditClasses();
@@ -71,7 +74,7 @@ export default {
   methods: {
     fetchMyCreditClasses: function () {
       this.isLoadingData = true;
-      creditClassAPI
+      creditAPI
         .fetchMyCreditClass(this.querySearch)
         .then(({ data }) => {
           this.creditClasses = data.map((item) => ({
@@ -93,7 +96,7 @@ export default {
     fetchCreditClass: function () {
       if (this.classCode) {
         this.isFindLoading = true;
-        creditClassAPI
+        creditAPI
           .find(this.classCode)
           .then(({ message, success, data }) => {
             this.isFindLoading = false;
@@ -164,7 +167,7 @@ export default {
     },
     async submit() {
       if (confirm('Bạn có muốn gửi đăng ký về hệ thống không?')) {
-        creditClassAPI
+        creditAPI
           .register({
             creditClasses: this.creditClasses.map(({ action, code }) => ({
               action,
@@ -208,7 +211,7 @@ export default {
                 <img src="./../assets/loading.gif" alt="" />
               </div>
               <div :class="isLoadingData ? 'opacity-50' : ''">
-                <div class="form-inline">
+                <div class="form-inline" v-if="canRegisterClass">
                   <input
                     type="text"
                     class="form-control"
@@ -254,7 +257,7 @@ export default {
                               <th>Trạng thái ĐK</th>
                               <th>Thực hiện</th>
                               <th>Tín chỉ</th>
-                              <th>Hành động</th>
+                              <th v-if="canRegisterClass">Hành động</th>
                             </tr>
                           </thead>
                           <tbody class="table-bordered">
@@ -311,7 +314,10 @@ export default {
                                       {{ subject.credit }}
                                     </div>
                                   </td>
-                                  <td class="text-center">
+                                  <td
+                                    class="text-center"
+                                    v-if="canRegisterClass"
+                                  >
                                     <input
                                       type="checkbox"
                                       class="checkbox-custom"
@@ -328,7 +334,7 @@ export default {
                                   </span>
                                 </td>
                               </tr>
-                              <tr>
+                              <tr v-if="canRegisterClass">
                                 <td class="text-right" colspan="10">
                                   <div class="py-1">
                                     <button
@@ -424,7 +430,7 @@ export default {
                     </tr>
                   </table>
                 </div>
-                <div class="row">
+                <div class="row" v-if="canRegisterClass">
                   <div class="col-12 text-center">
                     <button
                       :disabled="!progress"

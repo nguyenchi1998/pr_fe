@@ -1,13 +1,15 @@
 <script>
-import creditClassAPI from './../services/creditClassAPI';
+import creditAPI from '../services/creditAPI';
 import * as _ from 'lodash';
-import { removeEmptyObjects } from './../utils/helper';
+import { removeEmptyObjects } from '../utils/helper';
 import {
   CREDIT_CLASS_STATUS,
   CREDIT_CLASS_TYPE,
+  MY_CREDIT_CLASS_PAGE,
   WEEKDAYS,
 } from '../config/constants.js';
 import Paginate from 'vuejs-paginate-next';
+import Swal from 'sweetalert2';
 
 export default {
   components: {
@@ -21,7 +23,7 @@ export default {
       filter: {
         class_code: '',
         subject_code: '',
-        subject_name: 'To',
+        subject_name: '',
         note: '',
         type: '',
         status: '',
@@ -53,6 +55,9 @@ export default {
     totalPage() {
       return Math.ceil(this.creditClasses.length / this.perPage) ?? 0;
     },
+    canRegisterClass() {
+      return this.$store.getters.selectCanRegisterClass;
+    },
   },
   watch: {
     filter(newData, _oldData) {
@@ -62,8 +67,21 @@ export default {
   methods: {
     fetchCreditClasses: async function () {
       this.isLoadingData = true;
-      const { data } = await creditClassAPI.fetchCreditClass(this.querySearch);
-      this.creditClasses = data;
+      const response = await creditAPI.fetchCreditClasses(this.querySearch);
+      if (!response.success) {
+        Swal.fire({
+          text: 'Quay lại Trang Đăng Ký Sinh Viên',
+          title: response.message,
+          icon: 'error',
+          confirmButtonText: 'OK',
+        }).then(({ isConfirmed }) => {
+          if (isConfirmed) {
+            this.$router.replace({ name: MY_CREDIT_CLASS_PAGE });
+          }
+        });
+      } else {
+        this.creditClasses = response.data;
+      }
       this.isLoadingData = false;
     },
     search: _.debounce(function ({ target: { value, name } }) {
@@ -266,6 +284,7 @@ export default {
             </div>
           </div>
           <div
+            v-if="totalPage > 1"
             class="card-footer"
             :class="isLoadingData ? 'loading-opacity' : ''"
           >
@@ -289,8 +308,5 @@ export default {
 }
 .loading {
   opacity: 1;
-}
-.page-item {
-  cursor: pointer;
 }
 </style>

@@ -8,11 +8,9 @@ import './../assets/dist/css/custom.css';
 import NavBar from './Navbar.vue';
 import * as authAPI from './../services/authAPI';
 import { mapActions } from 'vuex';
-import {
-  MY_CREDIT_CLASS_PAGE,
-  REGISTER_CREDIT_CLASS_PAGE,
-} from './../config/constants';
+import { MY_CREDIT_CLASS_PAGE } from './../config/constants';
 import { PAGE_PATH } from './../main';
+import creditAPI from '../services/creditAPI';
 
 export default {
   data() {
@@ -31,15 +29,30 @@ export default {
     isCreditClassPage() {
       return this.$route.name === MY_CREDIT_CLASS_PAGE;
     },
+    canRegisterClass() {
+      return this.$store.getters.selectCanRegisterClass;
+    },
+    canRegisterSubject() {
+      return this.$store.getters.selectCanRegisterSubject;
+    },
   },
   created() {
     this.fetchAuth();
+    this.fetchCanRegister();
   },
   methods: {
-    ...mapActions(['setAuth']),
+    ...mapActions(['setAuth', 'setCanRegister']),
     async fetchAuth() {
-      const auth = await authAPI.fetchAuthUser();
-      await this.setAuth(auth);
+      const response = await authAPI.fetchAuthUser();
+      if (response.success) {
+        await this.setAuth(response.data);
+      }
+    },
+    async fetchCanRegister() {
+      const response = await creditAPI.fetchCheckCanRegister();
+      if (response.success) {
+        await this.setCanRegister(response.data);
+      }
     },
   },
 };
@@ -96,7 +109,9 @@ export default {
           <template v-if="auth?.learning_alert">
             <li>
               Số tín chỉ tối thiểu:
-              <b>{{ auth.learning_alert.min_register_credit }}</b>
+              <b>
+                {{ auth.learning_alert.min_register_credit }}
+              </b>
             </li>
             <li>
               Số tín chỉ tối đa:
@@ -104,22 +119,36 @@ export default {
                 {{ auth.learning_alert.max_register_credit }}
               </b>
             </li>
-            <li>
-              Cảnh báo học tập:
-              <b>
-                {{ auth.learning_alert.name }}
-              </b>
+            <li v-if="auth.learning_alert.type">
+              <div class="text-danger">
+                Cảnh báo học tập:
+                <b>
+                  {{ auth.learning_alert.name }}
+                </b>
+              </div>
             </li>
           </template>
-          <li class="text-capitalize pt-5">
+          <li v-if="canRegisterClass" class="text-capitalize pt-5">
             <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
-              Đăng ký tín chỉ
+              Đăng ký lớp tín chỉ
+            </router-link>
+          </li>
+          <li
+            v-if="canRegisterSubject"
+            class="text-capitalize"
+            :class="!canRegisterClass ? 'pt-5' : 'pt-2'"
+          >
+            <router-link
+              :to="PAGE_PATH.REGISTER_SUBJECT_PAGE"
+              :class="text - underline"
+            >
+              Đăng ký học phần
             </router-link>
           </li>
         </template>
         <li v-else class="text-capitalize pt-5">
           <router-link :to="PAGE_PATH.MY_CREDIT_CLASS_PAGE">
-            Quay lại trang đăng ký sinh viên
+            Quay lại trang đăng ký
           </router-link>
         </li>
       </ul>
@@ -132,3 +161,14 @@ export default {
     </div>
   </main>
 </template>
+
+<style scoped>
+li {
+  font-size: 1.1rem;
+  padding-top: 5px;
+}
+li > a {
+  text-decoration: underline;
+  font-size: 1.2rem;
+}
+</style>
