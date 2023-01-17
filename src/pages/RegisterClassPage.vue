@@ -86,7 +86,7 @@ export default {
     },
     search: _.debounce(function ({ target: { value, name } }) {
       this.filter = { ...this.filter, [name]: value };
-    }, 500),
+    }, 800),
     changePage(page) {
       this.page = page;
     },
@@ -143,7 +143,7 @@ export default {
                             </span>
                           </div>
                           <input
-                            class="form-control filter-input border-0"
+                            class="form-control border-0"
                             type="text"
                             placeholder="Nhập từ khóa"
                             :name="key"

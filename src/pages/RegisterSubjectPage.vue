@@ -145,7 +145,7 @@ export default {
                             </span>
                           </div>
                           <input
-                            class="form-control filter-input border-0"
+                            class="form-control filter border-0"
                             type="text"
                             placeholder="Nhập từ khóa"
                             :name="key"
