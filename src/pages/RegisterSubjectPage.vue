@@ -70,7 +70,6 @@ export default {
     fetchSubjects: async function () {
       this.isLoadingData = true;
       const response = await creditAPI.fetchSubjects(this.querySearch);
-      console.log(response);
       if (!response.success) {
         Swal.fire({
           text: 'Quay lại Trang Đăng Ký Sinh Viên',
@@ -104,9 +103,9 @@ export default {
         <div class="card card-main">
           <div class="card-header">
             <div class="d-flex justify-content-between">
-              <h4 class="text-capitalize">
+              <h5 class="text-capitalize">
                 Danh sách học phần dành cho đăng ký học tập
-              </h4>
+              </h5>
             </div>
           </div>
           <div

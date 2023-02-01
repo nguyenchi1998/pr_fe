@@ -3,11 +3,13 @@ import App from './App.vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import { createStore } from 'vuex';
 import 'mosha-vue-toastify/dist/style.css';
+
 import 'sweetalert2/src/sweetalert2.scss';
 import RegisterClassPage from './pages/RegisterClassPage.vue';
 import RegisterSubjectPage from './pages/RegisterSubjectPage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import MyCreditClassPage from './pages/MyCreditClassPage.vue';
+import SubjectPage from './pages/SubjectPage.vue';
 import NotFoundPage from './pages/NotFoundPage.vue';
 import StudentLayout from './layout/StudentLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -17,7 +19,8 @@ import {
   MY_CREDIT_CLASS_PAGE,
   REGISTER_CREDIT_CLASS_PAGE,
   LOGIN_PAGE,
-  REGISTER_SUBJECT_PAGE
+  REGISTER_SUBJECT_PAGE,
+  SUBJECT_PAGE
 } from './config/constants';
 import Paginate from 'vuejs-paginate-next';
 
@@ -25,7 +28,8 @@ export const PAGE_PATH = {
   [REGISTER_CREDIT_CLASS_PAGE]: '/credit-class',
   [LOGIN_PAGE]: '/login',
   [MY_CREDIT_CLASS_PAGE]: '/',
-  [REGISTER_SUBJECT_PAGE]: '/subject'
+  [REGISTER_SUBJECT_PAGE]: '/credit-subject',
+  [SUBJECT_PAGE]: '/subject'
 };
 const router = createRouter({
   history: createWebHistory(),
@@ -48,6 +52,10 @@ const router = createRouter({
         path: PAGE_PATH.MY_CREDIT_CLASS_PAGE,
         component: MyCreditClassPage,
         name: MY_CREDIT_CLASS_PAGE,
+      }, {
+        path: PAGE_PATH.SUBJECT_PAGE,
+        component: SubjectPage,
+        name: SUBJECT_PAGE,
       },
       ],
     }, {

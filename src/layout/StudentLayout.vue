@@ -1,14 +1,13 @@
 <script>
 import { RouterView } from 'vue-router';
-import './../assets/dist/css/all.min.css';
+import './../assets/css/all.min.css';
 import './../assets/plugins/fontawesome-free/css/all.min.css';
-import './../assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css';
-import './../assets/dist/css/adminlte.css';
-import './../assets/dist/css/custom.css';
+import './../assets/css/adminlte.css';
+import './../assets/css/custom.css';
 import NavBar from './Navbar.vue';
 import * as authAPI from './../services/authAPI';
 import { mapActions } from 'vuex';
-import { MY_CREDIT_CLASS_PAGE } from './../config/constants';
+import { REGISTER_CREDIT_CLASS_PAGE } from './../config/constants';
 import { PAGE_PATH } from './../main';
 import creditAPI from '../services/creditAPI';
 
@@ -26,8 +25,8 @@ export default {
     auth() {
       return this.$store.getters.selectAuth;
     },
-    isCreditClassPage() {
-      return this.$route.name === MY_CREDIT_CLASS_PAGE;
+    isNotCreditClassPage() {
+      return this.$route.name !== REGISTER_CREDIT_CLASS_PAGE;
     },
     canRegisterClass() {
       return this.$store.getters.selectCanRegisterClass;
@@ -67,13 +66,13 @@ export default {
           alt=""
           class="img-fluid profile-image-pic img-thumbnail my-3"
         />
-        <div class="ml-2 h3 text-capitalize mb-0">Đăng kí tín chỉ</div>
+        <div class="ml-2 h4 text-capitalize mb-0">Đăng kí tín chỉ</div>
       </div>
-      <div class="text-center h4" v-if="isCreditClassPage">
+      <div class="text-center h5" v-if="isNotCreditClassPage">
         Thông tin sinh viên
       </div>
       <ul class="pr-4">
-        <template v-if="isCreditClassPage">
+        <template v-if="isNotCreditClassPage">
           <li>
             Mã sinh viên:
             <b>
@@ -164,11 +163,11 @@ export default {
 
 <style scoped>
 li {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   padding-top: 5px;
 }
 li > a {
   text-decoration: underline;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 </style>

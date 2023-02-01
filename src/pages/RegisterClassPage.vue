@@ -101,9 +101,9 @@ export default {
         <div class="card card-main">
           <div class="card-header">
             <div class="d-flex justify-content-between">
-              <h4 class="text-capitalize">
+              <h5 class="text-capitalize">
                 Danh sách lớp dành cho đăng ký học tập
-              </h4>
+              </h5>
             </div>
           </div>
           <div

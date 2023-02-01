@@ -19,8 +19,8 @@ export default {
             <router-link to="/" class="nav-link"> Trang chủ </router-link>
           </li>
           <li class="nav-item">
-            <router-link to="/" class="nav-link">
-              Danh sách học phần
+            <router-link to="/subject" class="nav-link">
+              Chương trình đào tạo
             </router-link>
           </li>
         </ul>

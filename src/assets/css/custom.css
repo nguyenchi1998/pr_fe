@@ -1,0 +1,71 @@
+/*input[type="search"] {*/
+/*    width: 320px !important;*/
+/*}*/
+
+.invalid-feedback {
+  font-size: 95% !important;
+}
+
+.input-group {
+  flex-wrap: unset !important;
+}
+
+.card-footer {
+  background-color: unset !important;
+}
+
+.text-capitalize-first:first-letter {
+  text-transform: capitalize;
+}
+
+.table thead th {
+  border-bottom: 0 !important;
+}
+
+.checkbox-custom {
+  width: 17px;
+  height: 17px;
+}
+
+.table-sm-custom th,
+.table-sm-custom td {
+  padding: 0.4rem;
+}
+
+thead .col-sm {
+  max-width: 9.5%;
+  min-width: 135px;
+}
+.table {
+  min-width: 1100px;
+}
+
+.content-wrapper {
+  height: 100vh;
+}
+.no-data-text {
+  font-size: 19px;
+}
+.text-header-table {
+  font-size: 22px;
+}
+
+.wrapper-loading {
+  position: absolute;
+  z-index: 99;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 175px);
+}
+.card-main {
+  height: calc(100vh - 72px);
+  border-bottom-right-radius: unset;
+  border-bottom-left-radius: unset;
+  margin-bottom: 0;
+}
+
+td::first-letter {
+  text-transform: uppercase;
+}

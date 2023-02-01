@@ -66,7 +66,9 @@ export default {
   },
   beforeRouteLeave(_to, _from, next) {
     if (this.progress) {
-      if (confirm('Dữ liệu chưa được gửi!. Vẫn xác nhận rời trang?')) next();
+      if (confirm('Dữ liệu chưa được gửi!. Vẫn xác nhận rời trang?')) {
+        next();
+      }
     } else {
       next();
     }
@@ -97,7 +99,7 @@ export default {
       if (this.classCode) {
         this.isFindLoading = true;
         creditAPI
-          .find(this.classCode)
+          .fetchCreditClass(this.classCode)
           .then(({ message, success, data }) => {
             this.isFindLoading = false;
             if (!success) {
@@ -148,7 +150,6 @@ export default {
       }
       this.classCode = code;
     },
-
     removeClass() {
       this.progress = true;
       this.creditClasses = this.creditClasses.map((item) => ({
@@ -200,9 +201,9 @@ export default {
         <div class="card card-main">
           <div class="card-header">
             <div class="d-flex justify-content-between">
-              <div class="h4 text-capitalize flex-grow-1">
+              <h5 class="text-capitalize flex-grow-1">
                 Trang đăng ký sinh viên
-              </div>
+              </h5>
             </div>
           </div>
           <div class="card-body">
