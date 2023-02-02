@@ -44,7 +44,7 @@ thead .col-sm {
   height: 100vh;
 }
 .no-data-text {
-  font-size: 19px;
+  font-size: 16px;
 }
 .text-header-table {
   font-size: 22px;
@@ -68,4 +68,17 @@ thead .col-sm {
 
 td::first-letter {
   text-transform: uppercase;
+}
+
+.fa-large {
+  font-size: 18px;
+}
+.loading-opacity {
+  opacity: 0.5;
+}
+.loading {
+  opacity: 1;
+}
+.page-item:not(.disabled, .active) {
+  cursor: pointer;
 }

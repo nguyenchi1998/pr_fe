@@ -9,7 +9,6 @@ import {
   CREDIT_CLASS_TYPE,
   WEEKDAYS,
 } from '../config/constants.js';
-import { createToast } from 'mosha-vue-toastify';
 import Swal from 'sweetalert2';
 
 const ACTION_LABEL = {

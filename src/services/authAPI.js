@@ -42,19 +42,6 @@ export const changePassword = (credential, userId) => {
   });
 };
 
-export const signUp = (credential) => {
-  return new Promise((resolve, reject) => {
-    baseRequest()
-      .post(AUTH_URL.SIGN_UP, credential)
-      .then((response) => {
-        return resolve(response);
-      })
-      .catch((error) => {
-        return reject(error);
-      });
-  });
-};
-
 export const signOut = () => {
   removeAuthToken();
 };

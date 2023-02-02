@@ -10,7 +10,7 @@ import {
   getRefreshToken,
   removeAuthToken,
   setAccessToken,
-} from './../utils/storage';
+} from './storage';
 
 export const handle500Error = () => {
   window.location.href = `/500`;

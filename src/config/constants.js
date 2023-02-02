@@ -107,20 +107,23 @@ export const SUBJECT_RELATIONS = [
   {
     label: 'tương đương',
     value: 0,
-    short: 'a'
-  }, {
+    short: 'a',
+  },
+  {
     label: 'tiên quyết',
     value: 1,
-    short: 'b'
-  }, {
+    short: 'b',
+  },
+  {
     label: 'thay thế',
     value: 2,
-    short: 'c'
-  }, {
+    short: 'c',
+  },
+  {
     label: 'song hành',
     value: 3,
-    short: 'd'
-  }
+    short: 'd',
+  },
 ];
 
 export const REGISTER_CREDIT_CLASS_PAGE = 'REGISTER_CREDIT_CLASS_PAGE';

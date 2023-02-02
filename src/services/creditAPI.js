@@ -42,7 +42,7 @@ const register = async (creditClasses) => {
   return data;
 };
 
-const fetchSubjects = async (filter) => {
+const fetchCreditSubjects = async (filter) => {
   const { data } = await request().get(`${SUBJECT_RESOURCE}`, {
     params: filter,
   });
@@ -50,13 +50,11 @@ const fetchSubjects = async (filter) => {
   return data;
 };
 
-
-
 export default {
   fetchCreditClasses,
   fetchMyCreditClass,
   fetchCreditClass,
   register,
   fetchCheckCanRegister,
-  fetchSubjects
+  fetchCreditSubjects,
 };

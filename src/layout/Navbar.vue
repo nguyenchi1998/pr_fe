@@ -16,7 +16,7 @@ export default {
       <nav class="navbar navbar-expand">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <router-link to="/" class="nav-link"> Trang chủ </router-link>
+            <router-link to="/" class="nav-link"> Trang chủ</router-link>
           </li>
           <li class="nav-item">
             <router-link to="/subject" class="nav-link">
@@ -108,9 +108,9 @@ export default {
               <span class="badge badge-warning navbar-badge">15</span>
             </a>
             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-              <span class="dropdown-item dropdown-header"
-                >15 Notifications</span
-              >
+              <span class="dropdown-item dropdown-header">
+                15 Notifications
+              </span>
               <div class="dropdown-divider"></div>
               <a href="#" class="dropdown-item">
                 <i class="fas fa-envelope mr-2"></i> 4 new messages

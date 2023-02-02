@@ -1,8 +1,9 @@
 <script>
-import subjectAPI from '../services/subjectAPI';
+import studyProgramAPI from '../services/studyProgramAPI';
 import { removeEmptyObjects } from '../utils/helper';
 import Paginate from 'vuejs-paginate-next';
 import Swal from 'sweetalert2';
+import * as _ from 'lodash';
 
 export default {
   components: {
@@ -11,8 +12,6 @@ export default {
   data() {
     return {
       isLoadingData: false,
-      perPage: 10,
-      page: 1,
       filter: {
         code: '',
         name: '',
@@ -27,7 +26,7 @@ export default {
         text_mark: '',
         academy: '',
       },
-      subjects: [],
+      studyPrograms: [],
     };
   },
   computed: {
@@ -37,18 +36,37 @@ export default {
     querySearch() {
       return removeEmptyObjects(this.filter);
     },
-    subjectPaginate() {
-      return this.subjects.slice(
-        (this.page - 1) * this.perPage,
-        this.page * this.perPage,
+    mapStudyPrograms() {
+      return this.studyPrograms.map(
+        ({ study_program_details, ...studyProgram }) => ({
+          ...studyProgram,
+          study_program_details: study_program_details.map(
+            ({ students, ...study_program_detail }) => ({
+              ...study_program_detail,
+              number_mark: students[0]?.pivot?.number_mark ?? '',
+              text_mark: students[0]?.pivot?.text_mark ?? '',
+              isLearn: students.length
+            }),
+          ),
+          totalPassCredit: study_program_details.reduce(
+            (total, study_program_detail) =>
+              total +
+              (study_program_detail.students.length
+                ? study_program_detail.subject.credit
+                : 0),
+            0,
+          ),
+        }),
       );
-    },
-    totalPage() {
-      return Math.ceil(this.subjects.length / this.perPage) ?? 0;
     },
   },
   created() {
     this.fetchSubjects();
+  },
+  watch: {
+    filter(_oldData, newData) {
+      this.fetchSubjects(newData);
+    },
   },
   beforeRouteLeave(_to, _from, next) {
     if (this.progress) {
@@ -62,11 +80,11 @@ export default {
   methods: {
     fetchSubjects: function () {
       this.isLoadingData = true;
-      subjectAPI
-        .fetchSubjects(this.querySearch)
+      studyProgramAPI
+        .fetchMyStudyPrograms(this.querySearch)
         .then(({ data }) => {
           this.isLoadingData = false;
-          this.subjects = data;
+          this.studyPrograms = data;
         })
         .catch(({ message }) => {
           this.isLoadingData = false;
@@ -80,6 +98,9 @@ export default {
     changePage(page) {
       this.page = page;
     },
+    search: _.debounce(function ({ target: { value, name } }) {
+      this.filter = { ...this.filter, [name]: value };
+    }, 500),
   },
 };
 </script>
@@ -109,7 +130,7 @@ export default {
                 class="table-responsive"
                 :class="isLoadingData ? 'opacity-50' : ''"
               >
-                <table class="table table-bordered">
+                <table class="table table-sm table-bordered">
                   <thead>
                     <tr class="table-bordered align-middle">
                       <th>Mã HP</th>
@@ -147,43 +168,63 @@ export default {
                     </tr>
                   </thead>
                   <tbody class="table-bordered">
-                    <template v-if="subjects.length">
+                    <template v-if="studyPrograms.length">
                       <template
                         v-for="{
-                          code,
                           name,
-                          credit,
-                          academy,
-                          register_study_semester,
-                          study_program_detail,
-                        } in subjectPaginate"
+                          id,
+                          study_program_details,
+                          required_credit,
+                          totalPassCredit,
+                        } in mapStudyPrograms"
                       >
-                        <tr class="align-middle">
+                        <tr class="bg-gradient-lightblue">
+                          <th colspan="12" class="p-2">
+                            <div>
+                              Mã loại HP: {{ id }} (Số HP:
+                              {{ study_program_details.length }}, Tổng TC:
+                              {{ required_credit }}, Tổng đạt:
+                              {{ totalPassCredit }})
+                            </div>
+                            <div>Loại HP: {{ name }}</div>
+                          </th>
+                        </tr>
+                        <tr
+                          v-for="{
+                            subject: {
+                              code,
+                              name,
+                              credit,
+                              academy,
+                              register_study_semester,
+                            },
+                            force,
+                            number_mark,
+                            text_mark,isLearn
+                          } in study_program_details"
+                        >
                           <td>
                             {{ code }}
                           </td>
                           <td>
                             {{ name }}
                           </td>
-                          <td align="center">
+                          <td class="text-center">
                             {{ register_study_semester }}
                           </td>
-                          <td align="center">
-                            <i
-                              v-if="study_program_detail?.force"
-                              class="fa fa-check-square"
-                            ></i>
+                          <td class="text-center">
+                            <i v-if="force" class="fa fa-check-square"></i>
                             <i v-else class="fa fa-square"></i>
                           </td>
-                          <td align="center">{{ credit }}</td>
-                          <td align="center">{{ credit }}</td>
-                          <td>{{ code }}</td>
+                          <td class="text-center">{{ credit }}</td>
+                          <td class="text-center">{{ credit }}</td>
+                          <td>{{ isLearn ? code : '' }}</td>
                           <td>
                             {{ study_program_detail?.study_program.name }}
                           </td>
                           <td>{{ study_program_detail?.note }}</td>
-                          <td></td>
-                          <td></td>
+                          <td>{{ text_mark }}</td>
+                          <td>{{ number_mark }}</td>
                           <td>{{ academy.code }}</td>
                         </tr>
                       </template>
@@ -191,7 +232,7 @@ export default {
                     <tr v-else>
                       <td
                         class="fw-light text-center no-data-text"
-                        colspan="10"
+                        colspan="12"
                       >
                         Không có học phần nào
                       </td>
@@ -201,31 +242,8 @@ export default {
               </div>
             </div>
           </div>
-          <div
-            v-if="totalPage > 1"
-            class="card-footer"
-            :class="isLoadingData ? 'loading-opacity' : ''"
-          >
-            <paginate
-              :page-count="totalPage"
-              :clickHandler="changePage"
-              :prev-text="'Prev'"
-              :next-text="'Next'"
-              :page-class="'page-item'"
-            >
-            </paginate>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-<style scoped>
-.checkbox-custom {
-  width: 15px;
-  height: 15px;
-}
-.checkbox-custom:disabled {
-  color: red !important;
-}
-</style>

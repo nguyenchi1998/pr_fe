@@ -9,7 +9,6 @@ import RegisterClassPage from './pages/RegisterClassPage.vue';
 import RegisterSubjectPage from './pages/RegisterSubjectPage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import MyCreditClassPage from './pages/MyCreditClassPage.vue';
-import SubjectPage from './pages/SubjectPage.vue';
 import NotFoundPage from './pages/NotFoundPage.vue';
 import StudentLayout from './layout/StudentLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -20,16 +19,17 @@ import {
   REGISTER_CREDIT_CLASS_PAGE,
   LOGIN_PAGE,
   REGISTER_SUBJECT_PAGE,
-  SUBJECT_PAGE
+  SUBJECT_PAGE,
 } from './config/constants';
 import Paginate from 'vuejs-paginate-next';
+import MyStudyProgramPage from './pages/MyStudyProgramPage.vue';
 
 export const PAGE_PATH = {
   [REGISTER_CREDIT_CLASS_PAGE]: '/credit-class',
   [LOGIN_PAGE]: '/login',
   [MY_CREDIT_CLASS_PAGE]: '/',
   [REGISTER_SUBJECT_PAGE]: '/credit-subject',
-  [SUBJECT_PAGE]: '/subject'
+  [SUBJECT_PAGE]: '/subject',
 };
 const router = createRouter({
   history: createWebHistory(),
@@ -40,29 +40,35 @@ const router = createRouter({
       meta: {
         requiredAuth: true,
       },
-      children: [{
-        path: PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE,
-        component: RegisterClassPage,
-        name: REGISTER_CREDIT_CLASS_PAGE,
-      }, {
-        path: PAGE_PATH.REGISTER_SUBJECT_PAGE,
-        component: RegisterSubjectPage,
-        name: REGISTER_SUBJECT_PAGE,
-      }, {
-        path: PAGE_PATH.MY_CREDIT_CLASS_PAGE,
-        component: MyCreditClassPage,
-        name: MY_CREDIT_CLASS_PAGE,
-      }, {
-        path: PAGE_PATH.SUBJECT_PAGE,
-        component: SubjectPage,
-        name: SUBJECT_PAGE,
-      },
+      children: [
+        {
+          path: PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE,
+          component: RegisterClassPage,
+          name: REGISTER_CREDIT_CLASS_PAGE,
+        },
+        {
+          path: PAGE_PATH.REGISTER_SUBJECT_PAGE,
+          component: RegisterSubjectPage,
+          name: REGISTER_SUBJECT_PAGE,
+        },
+        {
+          path: PAGE_PATH.MY_CREDIT_CLASS_PAGE,
+          component: MyCreditClassPage,
+          name: MY_CREDIT_CLASS_PAGE,
+        },
+        {
+          path: PAGE_PATH.SUBJECT_PAGE,
+          component: MyStudyProgramPage,
+          name: SUBJECT_PAGE,
+        },
       ],
-    }, {
+    },
+    {
       path: PAGE_PATH.LOGIN_PAGE,
       component: LoginPage,
       name: LOGIN_PAGE,
-    }, {
+    },
+    {
       path: '/:pathMatch(.*)*',
       component: NotFoundPage,
     },
@@ -86,8 +92,8 @@ const store = createStore({
       auth: null,
       can_register: {
         subject: false,
-        class: false
-      }
+        class: false,
+      },
     };
   },
   mutations: {
@@ -97,8 +103,8 @@ const store = createStore({
     setCanRegister(state, payload) {
       state.can_register = {
         ...state.can_register,
-        ...payload
-      }
+        ...payload,
+      };
     },
   },
   actions: {
@@ -108,7 +114,6 @@ const store = createStore({
     setCanRegister(context, payload) {
       context.commit('setCanRegister', payload);
     },
-
   },
   getters: {
     selectAuth(state) {

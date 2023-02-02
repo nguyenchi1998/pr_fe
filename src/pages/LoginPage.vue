@@ -2,6 +2,7 @@
 import { PAGE_PATH } from './../main';
 import { signIn } from './../services/authAPI';
 import { setAuthToken } from './../utils/storage';
+
 export default {
   data() {
     return {
@@ -10,6 +11,7 @@ export default {
         password: 'password',
       },
       isLoading: false,
+      errorMessage: '',
     };
   },
   methods: {
@@ -23,10 +25,23 @@ export default {
             path: returnUrl ?? PAGE_PATH.MY_CREDIT_CLASS_PAGE,
           });
         })
-        .catch(() => {})
+        .catch(({ response }) => {
+          if (response.data) {
+            this.errorMessage = response.data?.message;
+          }
+        })
         .finally(() => {
           this.isLoading = false;
         });
+    },
+    changeCredential({ target: { value, name }, keyCode }) {
+      if (keyCode === 13) {
+        this.submitAuth();
+      } else
+        this.credential = {
+          ...this.credential,
+          [name]: value,
+        };
     },
   },
 };
@@ -40,31 +55,40 @@ export default {
         <div class="text-center mb-5 text-dark">Made with bootstrap</div>
         <div class="card my-3">
           <div class="card-body p-lg-5">
-            <div class="text-center mb-3">
+            <div class="text-center mb-2">
               <img
                 src="./../assets/logo.png"
                 class="img-fluid profile-image-pic img-thumbnail rounded-circle my-3"
                 alt="profile"
               />
             </div>
+
             <div class="mb-3">
               <input
                 type="text"
                 class="form-control"
                 id="Email"
+                name="email"
                 aria-describedby="emailHelp"
                 :value="credential.email"
                 placeholder="User Name"
+                @keyup="changeCredential"
               />
             </div>
-            <div class="mb-3">
+            <div class="mb-2">
               <input
                 type="password"
                 class="form-control"
                 id="password"
+                name="password"
                 placeholder="Mật khẩu"
+                :class="errorMessage !== '' ? ' border-danger' : ''"
                 :value="credential.password"
+                @change="changeCredential"
               />
+            </div>
+            <div class="text-center text-danger error-message mb-2">
+              {{ errorMessage }}
             </div>
             <div class="text-center">
               <button
@@ -72,14 +96,15 @@ export default {
                 class="btn btn-warning px-5 mb-1 w-100 btn-color"
                 @click="submitAuth"
               >
-                <div
-                  v-if="isLoading"
-                  class="spinner-border spinner-border-sm"
-                  role="status"
-                >
+                <template v-if="isLoading">
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
                   <span class="sr-only">Loading...</span>
-                </div>
-                <div v-else>Đăng nhập</div>
+                </template>
+                <span v-else>Đăng nhập</span>
               </button>
             </div>
             <div id="emailHelp" class="form-text text-center mb-1 text-dark">
@@ -97,9 +122,14 @@ export default {
   color: #fff;
   border-color: #0c2044;
 }
+
 .profile-image-pic {
   height: 150px;
   width: 150px;
   object-fit: cover;
+}
+
+.error-message {
+  min-height: 25px;
 }
 </style>

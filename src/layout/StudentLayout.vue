@@ -62,11 +62,10 @@ export default {
       <div class="px-2 d-flex justify-contents-between align-items-center">
         <img
           src="./../assets/logo.png"
-          width="80"
           alt=""
-          class="img-fluid profile-image-pic img-thumbnail my-3"
+          class="img-fluid logo profile-image-pic img-thumbnail my-3"
         />
-        <div class="ml-2 h4 text-capitalize mb-0">Đăng kí tín chỉ</div>
+        <h4 class="ml-2 text-capitalize mb-0">Đăng kí tín chỉ</h4>
       </div>
       <div class="text-center h5" v-if="isNotCreditClassPage">
         Thông tin sinh viên
@@ -137,10 +136,7 @@ export default {
             class="text-capitalize"
             :class="!canRegisterClass ? 'pt-5' : 'pt-2'"
           >
-            <router-link
-              :to="PAGE_PATH.REGISTER_SUBJECT_PAGE"
-              :class="text - underline"
-            >
+            <router-link :to="PAGE_PATH.REGISTER_SUBJECT_PAGE">
               Đăng ký học phần
             </router-link>
           </li>
@@ -166,8 +162,13 @@ li {
   font-size: 1.05rem;
   padding-top: 5px;
 }
+
 li > a {
   text-decoration: underline;
   font-size: 1.1rem;
+}
+
+.logo {
+  width: 80px;
 }
 </style>

@@ -5,8 +5,8 @@ import {
   CREDIT_CLASS_STATUS,
   CREDIT_CLASS_TYPE,
   MY_CREDIT_CLASS_PAGE,
-  WEEKDAYS,
   SUBJECT_RELATIONS,
+  WEEKDAYS,
 } from '../config/constants.js';
 import Paginate from 'vuejs-paginate-next';
 import Swal from 'sweetalert2';
@@ -22,7 +22,7 @@ export default {
       perPage: 10,
       page: 1,
       filter: {
-        code: 'PE2026',
+        code: '',
         name: '',
         time: '',
         credit: '',
@@ -30,6 +30,7 @@ export default {
         condition: '',
       },
       subjects: [],
+      subjectCodes: [],
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       WEEKDAYS: WEEKDAYS,
@@ -69,7 +70,7 @@ export default {
   methods: {
     fetchSubjects: async function () {
       this.isLoadingData = true;
-      const response = await creditAPI.fetchSubjects(this.querySearch);
+      const response = await creditAPI.fetchCreditSubjects(this.querySearch);
       if (!response.success) {
         Swal.fire({
           text: 'Quay lại Trang Đăng Ký Sinh Viên',
@@ -91,6 +92,16 @@ export default {
     }, 500),
     changePage(page) {
       this.page = page;
+    },
+    triggerCheck({ target: { checked } }, code) {
+      if (checked) {
+        this.subjectCodes = [...this.subjectCodes, code];
+      } else {
+        this.subjectCodes = this.subjectCodes.filter((item) => item !== code);
+      }
+    },
+    clearFilter() {
+      for (const key in this.filter) this.filter[key] = '';
     },
   },
 };
@@ -153,19 +164,22 @@ export default {
                           />
                         </div>
                       </td>
-                      <td></td>
+                      <td>
+                        <button
+                          class="btn btn-sm clear-filter"
+                          @click="clearFilter"
+                        >
+                          Xóa lọc
+                        </button>
+                      </td>
                     </tr>
                     <template v-if="!subjects.length">
                       <tr class="align-middle">
-                        <td
-                          class="text-center no-data-text"
-                          v-if="hasQuerySearch"
-                          colspan="8"
-                        >
-                          Không tìm thấy học phần phù hợp
-                        </td>
-                        <td class="text-center no-data-text" v-else colspan="8">
-                          Nhập từ khóa để tìm kiếm
+                        <td class="text-center no-data-text" colspan="8">
+                          <span v-if="hasQuerySearch"
+                            >Không tìm thấy học phần phù hợp</span
+                          >
+                          <span v-else> Nhập từ khóa để tìm kiếm</span>
                         </td>
                       </tr>
                     </template>
@@ -204,7 +218,9 @@ export default {
                           >
                             {{
                               `${subjectRelations[index].label}: ${subjects
-                                .map(({ parent_subject: { code } }) => code)
+                                .map(
+                                  ({ parent_subject }) => parent_subject.code,
+                                )
                                 .join(', ')}`
                             }}
                           </div>
@@ -212,8 +228,8 @@ export default {
                         <td class="text-center">
                           <input
                             type="checkbox"
-                            name=""
-                            id=""
+                            :checked="subjectCodes.includes(code)"
+                            @change="triggerCheck($event, code)"
                             class="checkbox-custom"
                           />
                         </td>
@@ -244,14 +260,8 @@ export default {
     </div>
   </div>
 </template>
-<style>
-.loading-opacity {
-  opacity: 0.5;
-}
-.loading {
-  opacity: 1;
-}
-.page-item:not(.disabled, .active) {
-  cursor: pointer;
+<style scoped>
+.clear-filter {
+  font-size: 15px;
 }
 </style>

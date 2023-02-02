@@ -170,7 +170,6 @@ export default {
                     <template
                       v-else
                       v-for="{
-                        id,
                         code,
                         subject,
                         note,
@@ -302,11 +301,3 @@ export default {
     </div>
   </div>
 </template>
-<style>
-.loading-opacity {
-  opacity: 0.5;
-}
-.loading {
-  opacity: 1;
-}
-</style>

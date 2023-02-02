@@ -1,8 +1,8 @@
 import { request } from '../utils/request';
 
-const BASE_RESOURCE = '/subjects';
+const BASE_RESOURCE = '/study-programs';
 
-const fetchSubjects = async (filter) => {
+const fetchMyStudyPrograms = async (filter) => {
   const { data } = await request().get(`${BASE_RESOURCE}`, {
     params: filter,
   });
@@ -10,5 +10,5 @@ const fetchSubjects = async (filter) => {
   return data;
 };
 export default {
-  fetchSubjects,
-}
+  fetchMyStudyPrograms,
+};
