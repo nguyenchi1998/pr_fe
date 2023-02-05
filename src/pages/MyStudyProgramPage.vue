@@ -20,7 +20,6 @@ export default {
         credit: '',
         study_credit: '',
         study_code: '',
-        type: '',
         note: '',
         number_mark: '',
         text_mark: '',
@@ -41,17 +40,20 @@ export default {
         ({ study_program_details, ...studyProgram }) => ({
           ...studyProgram,
           study_program_details: study_program_details.map(
-            ({ students, ...study_program_detail }) => ({
+            ({
+              largest_mark_credit_class_student,
+              ...study_program_detail
+            }) => ({
               ...study_program_detail,
-              number_mark: students[0]?.pivot?.number_mark ?? '',
-              text_mark: students[0]?.pivot?.text_mark ?? '',
-              isLearn: students.length
+              number_mark: largest_mark_credit_class_student?.number_mark ?? '',
+              text_mark: largest_mark_credit_class_student?.text_mark ?? '',
+              isLearn: largest_mark_credit_class_student,
             }),
           ),
           totalPassCredit: study_program_details.reduce(
             (total, study_program_detail) =>
               total +
-              (study_program_detail.students.length
+              (study_program_detail.largest_mark_credit_class_student
                 ? study_program_detail.subject.credit
                 : 0),
             0,
@@ -140,7 +142,6 @@ export default {
                       <th>TC ĐT</th>
                       <th>TC học</th>
                       <th>Mã HP học</th>
-                      <th>Loại HP</th>
                       <th>Ghi chú loại HP</th>
                       <th>Điểm chữ</th>
                       <th>Điểm số</th>
@@ -179,7 +180,7 @@ export default {
                         } in mapStudyPrograms"
                       >
                         <tr class="bg-gradient-lightblue">
-                          <th colspan="12" class="p-2">
+                          <th colspan="11" class="p-2">
                             <div>
                               Mã loại HP: {{ id }} (Số HP:
                               {{ study_program_details.length }}, Tổng TC:
@@ -200,7 +201,8 @@ export default {
                             },
                             force,
                             number_mark,
-                            text_mark,isLearn
+                            text_mark,
+                            isLearn,
                           } in study_program_details"
                         >
                           <td>
@@ -217,11 +219,10 @@ export default {
                             <i v-else class="fa fa-square"></i>
                           </td>
                           <td class="text-center">{{ credit }}</td>
-                          <td class="text-center">{{ credit }}</td>
-                          <td>{{ isLearn ? code : '' }}</td>
-                          <td>
-                            {{ study_program_detail?.study_program.name }}
+                          <td class="text-center">
+                            {{ isLearn ? credit : '' }}
                           </td>
+                          <td>{{ isLearn ? code : '' }}</td>
                           <td>{{ study_program_detail?.note }}</td>
                           <td>{{ text_mark }}</td>
                           <td>{{ number_mark }}</td>
@@ -232,7 +233,7 @@ export default {
                     <tr v-else>
                       <td
                         class="fw-light text-center no-data-text"
-                        colspan="12"
+                        colspan="11"
                       >
                         Không có học phần nào
                       </td>

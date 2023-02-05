@@ -4,6 +4,7 @@ import { removeEmptyObjects } from '../utils/helper';
 const DELETE_ACTION = 'delete';
 const INSERT_ACTION = 'insert';
 const SUCCESS_ACTION_STATUS = 'Thành công';
+const FAIL_ACTION_STATUS = 'Thất bại';
 import {
   CREDIT_CLASS_STATUS,
   CREDIT_CLASS_TYPE,
@@ -174,17 +175,29 @@ export default {
               code,
             })),
           })
-          .then(({ data }) => {
-            this.classCodes = [];
-            this.message = {
-              success: true,
-              content: 'Đã gửi đăng ký. Xem kết quả trên giao diện',
-            };
-            this.creditClasses = data.map((item) => ({
-              ...item,
-              action: '',
-              action_status: SUCCESS_ACTION_STATUS,
-            }));
+          .then(({ data, success, message }) => {
+            if (success) {
+              this.classCodes = [];
+              this.message = {
+                success: true,
+                content: 'Đã gửi đăng ký. Xem kết quả trên giao diện',
+              };
+              this.creditClasses = data.map((item) => ({
+                ...item,
+                action: '',
+                action_status: SUCCESS_ACTION_STATUS,
+              }));
+            } else {
+              this.message = {
+                success: false,
+                content: message,
+              };
+              this.creditClasses = this.creditClasses.map((item) => ({
+                ...item,
+                action: '',
+                action_status: FAIL_ACTION_STATUS,
+              }));
+            }
           })
           .catch();
       }
@@ -241,7 +254,7 @@ export default {
                         <table class="table mb-0">
                           <thead>
                             <tr class="table-borderless">
-                              <td colspan="10" class="border-0">
+                              <td colspan="10" class="border-0" >
                                 <div class="text-header-table mb-0 text-center">
                                   Danh sách lớp đăng ký
                                 </div>
@@ -390,11 +403,9 @@ export default {
                             >
                               <td>
                                 {{
-                                  `Thứ ${
-                                    WEEKDAYS.find(
-                                      ({ value }) => value === weekday,
-                                    )?.label
-                                  }`
+                                  WEEKDAYS.find(
+                                    ({ value }) => value === weekday,
+                                  )?.label
                                 }}
                               </td>
                               <td>

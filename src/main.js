@@ -19,7 +19,7 @@ import {
   REGISTER_CREDIT_CLASS_PAGE,
   LOGIN_PAGE,
   REGISTER_SUBJECT_PAGE,
-  SUBJECT_PAGE,
+  STUDY_PROGRAM_PAGE
 } from './config/constants';
 import Paginate from 'vuejs-paginate-next';
 import MyStudyProgramPage from './pages/MyStudyProgramPage.vue';
@@ -29,7 +29,7 @@ export const PAGE_PATH = {
   [LOGIN_PAGE]: '/login',
   [MY_CREDIT_CLASS_PAGE]: '/',
   [REGISTER_SUBJECT_PAGE]: '/credit-subject',
-  [SUBJECT_PAGE]: '/subject',
+  [STUDY_PROGRAM_PAGE]: '/study-program',
 };
 const router = createRouter({
   history: createWebHistory(),
@@ -57,9 +57,9 @@ const router = createRouter({
           name: MY_CREDIT_CLASS_PAGE,
         },
         {
-          path: PAGE_PATH.SUBJECT_PAGE,
+          path: PAGE_PATH.STUDY_PROGRAM_PAGE,
           component: MyStudyProgramPage,
-          name: SUBJECT_PAGE,
+          name: STUDY_PROGRAM_PAGE,
         },
       ],
     },

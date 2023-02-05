@@ -26,7 +26,6 @@ export default {
         name: '',
         time: '',
         credit: '',
-        force: '',
         condition: '',
       },
       subjects: [],
@@ -137,8 +136,7 @@ export default {
                       <th>Mã học phần</th>
                       <th>Tên học phần</th>
                       <th>Thời lượng</th>
-                      <th>Số tín chỉ</th>
-                      <th>Bắt buộc</th>
+                      <th>TC</th>
                       <th>Điều kiện</th>
                       <th>Đăng ký</th>
                     </tr>
@@ -147,6 +145,13 @@ export default {
                     <tr class="align-middle">
                       <td class="p-0" v-for="(value, key) in filter">
                         <div class="input-group">
+                          <input
+                            class="form-control filter border-0"
+                            type="text"
+                            :name="key"
+                            :value="value"
+                            @keyup="search"
+                          />
                           <div class="input-group-prepend border-0">
                             <span
                               class="input-group-text rounded-0 border-0 px-1"
@@ -154,17 +159,9 @@ export default {
                               <i class="fa fa-filter"></i>
                             </span>
                           </div>
-                          <input
-                            class="form-control filter border-0"
-                            type="text"
-                            placeholder="Nhập từ khóa"
-                            :name="key"
-                            :value="value"
-                            @keyup="search"
-                          />
                         </div>
                       </td>
-                      <td>
+                      <td class="p-0">
                         <button
                           class="btn btn-sm clear-filter"
                           @click="clearFilter"
@@ -175,11 +172,11 @@ export default {
                     </tr>
                     <template v-if="!subjects.length">
                       <tr class="align-middle">
-                        <td class="text-center no-data-text" colspan="8">
-                          <span v-if="hasQuerySearch"
-                            >Không tìm thấy học phần phù hợp</span
-                          >
-                          <span v-else> Nhập từ khóa để tìm kiếm</span>
+                        <td class="text-center no-data-text" colspan="6">
+                          <span v-if="hasQuerySearch">
+                            Không tìm thấy học phần phù hợp
+                          </span>
+                          <span v-else>Nhập từ khóa để tìm kiếm</span>
                         </td>
                       </tr>
                     </template>
@@ -209,7 +206,6 @@ export default {
                         <td>
                           {{ credit }}
                         </td>
-                        <td>Có</td>
                         <td>
                           <div
                             v-for="(

@@ -118,7 +118,7 @@ export default {
                 class="table-responsive"
                 :class="isLoadingData ? 'opacity-50' : ''"
               >
-                <table class="table-bordered table-sm-custom table">
+                <table class="table-bordered table">
                   <thead>
                     <tr class="align-middle">
                       <td>Mã lớp</td>
@@ -135,13 +135,6 @@ export default {
                     <tr class="align-middle">
                       <td class="p-0" v-for="(value, key) in filter">
                         <div class="input-group">
-                          <div class="input-group-prepend border-0">
-                            <span
-                              class="input-group-text rounded-0 border-0 px-1"
-                            >
-                              <i class="fa fa-filter"></i>
-                            </span>
-                          </div>
                           <input
                             class="form-control border-0"
                             type="text"
@@ -150,6 +143,13 @@ export default {
                             :value="value"
                             @keyup="search"
                           />
+                          <div class="input-group-prepend border-0">
+                            <span
+                              class="input-group-text rounded-0 border-0 px-1"
+                            >
+                              <i class="fa fa-filter"></i>
+                            </span>
+                          </div>
                         </div>
                       </td>
                     </tr>

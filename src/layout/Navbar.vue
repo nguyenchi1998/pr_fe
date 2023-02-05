@@ -1,7 +1,13 @@
 <script>
+import { PAGE_PATH } from './../main';
 import { signOut } from '../services/authAPI';
 
 export default {
+  data() {
+    return {
+      PAGE_PATH: PAGE_PATH,
+    };
+  },
   methods: {
     logout: function () {
       if (confirm('Logout?')) signOut();
@@ -16,10 +22,12 @@ export default {
       <nav class="navbar navbar-expand">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <router-link to="/" class="nav-link"> Trang chủ</router-link>
+            <router-link :to="PAGE_PATH.MY_CREDIT_CLASS_PAGE" class="nav-link">
+              Trang chủ
+            </router-link>
           </li>
           <li class="nav-item">
-            <router-link to="/subject" class="nav-link">
+            <router-link :to="PAGE_PATH.STUDY_PROGRAM_PAGE" class="nav-link">
               Chương trình đào tạo
             </router-link>
           </li>
