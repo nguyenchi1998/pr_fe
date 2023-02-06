@@ -39,7 +39,6 @@ export default {
       },
       creditClasses: [],
       classCodes: [],
-      progress: false,
       CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       WEEKDAYS: WEEKDAYS,
@@ -63,15 +62,6 @@ export default {
   },
   created() {
     this.fetchMyCreditClasses();
-  },
-  beforeRouteLeave(_to, _from, next) {
-    if (this.progress) {
-      if (confirm('Dữ liệu chưa được gửi!. Vẫn xác nhận rời trang?')) {
-        next();
-      }
-    } else {
-      next();
-    }
   },
   methods: {
     fetchMyCreditClasses: function () {
@@ -110,7 +100,6 @@ export default {
               return;
             }
             this.message = { success: false, content: '' };
-            this.progress = true;
 
             if (this.creditClasses.find(({ code }) => code === data.code)) {
               this.message = {
@@ -151,7 +140,6 @@ export default {
       this.classCode = code;
     },
     removeClass() {
-      this.progress = true;
       this.creditClasses = this.creditClasses.map((item) => ({
         ...item,
         ...(this.classCodes.includes(item.code)
@@ -444,7 +432,6 @@ export default {
                 <div class="row" v-if="canRegisterClass">
                   <div class="col-12 text-center">
                     <button
-                      :disabled="!progress"
                       class="btn btn-primary"
                       @click="submit"
                     >

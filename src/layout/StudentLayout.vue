@@ -98,12 +98,6 @@ export default {
               </b>
             </li>
           </template>
-          <li v-if="auth?.major">
-            Chuyên ngành:
-            <b>
-              {{ auth.major.name }}
-            </b>
-          </li>
           <template v-if="auth?.learning_alert">
             <li>
               Số tín chỉ tối thiểu:
