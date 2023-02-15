@@ -18,18 +18,22 @@ export default {
   },
   data() {
     return {
+      message: {
+        success: '',
+        content: '',
+      },
+      isFindLoading: false,
       isLoadingData: false,
       perPage: 10,
       page: 1,
       filter: {
         code: '',
         name: '',
-        time: '',
         credit: '',
         condition: '',
       },
       subjects: [],
-      subjectCodes: [],
+      subjectCode: '',
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       WEEKDAYS: WEEKDAYS,
@@ -92,15 +96,21 @@ export default {
     changePage(page) {
       this.page = page;
     },
-    triggerCheck({ target: { checked } }, code) {
-      if (checked) {
-        this.subjectCodes = [...this.subjectCodes, code];
-      } else {
-        this.subjectCodes = this.subjectCodes.filter((item) => item !== code);
-      }
-    },
     clearFilter() {
       for (const key in this.filter) this.filter[key] = '';
+    },
+    async registerSubject() {
+      const { success, message } = await creditAPI.registerCreditSubject(
+        this.subjectCode,
+      );
+      this.message = {
+        success: success,
+        content: message,
+      };
+    },
+    changeSubjectCode({ target: { value } }) {
+      const code = value.trim();
+      this.subjectCode = code;
     },
   },
 };
@@ -130,126 +140,217 @@ export default {
                 class="table-responsive"
                 :class="isLoadingData ? 'opacity-50' : ''"
               >
-                <table class="table-bordered table">
-                  <thead>
-                    <tr class="align-middle">
-                      <th>Mã học phần</th>
-                      <th>Tên học phần</th>
-                      <th>Thời lượng</th>
-                      <th>TC</th>
-                      <th>Điều kiện</th>
-                      <th>Đăng ký</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="align-middle">
-                      <td class="p-0" v-for="(value, key) in filter">
-                        <div class="input-group">
-                          <input
-                            class="form-control filter border-0"
-                            type="text"
-                            :name="key"
-                            :value="value"
-                            @keyup="search"
-                          />
-                          <div class="input-group-prepend border-0">
-                            <span
-                              class="input-group-text rounded-0 border-0 px-1"
-                            >
-                              <i class="fa fa-filter"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-0">
-                        <button
-                          class="btn btn-sm clear-filter"
-                          @click="clearFilter"
-                        >
-                          Xóa lọc
-                        </button>
-                      </td>
-                    </tr>
-                    <template v-if="!subjects.length">
-                      <tr class="align-middle">
-                        <td class="text-center no-data-text" colspan="6">
-                          <span v-if="hasQuerySearch">
-                            Không tìm thấy học phần phù hợp
-                          </span>
-                          <span v-else>Nhập từ khóa để tìm kiếm</span>
-                        </td>
-                      </tr>
-                    </template>
-                    <template
-                      v-else
-                      v-for="{
-                        code,
-                        name,
-                        time1,
-                        time2,
-                        time3,
-                        time4,
-                        group_by_relation_subjects,
-                        credit,
-                      } in paginateSubjects"
-                    >
-                      <tr class="align-middle">
-                        <td>
-                          {{ code }}
-                        </td>
-                        <td>
-                          {{ name }}
-                        </td>
-                        <td>
-                          {{ `${time1} - ${time2} - ${time3} - ${time4}` }}
-                        </td>
-                        <td>
-                          {{ credit }}
-                        </td>
-                        <td>
-                          <div
-                            v-for="(
-                              subjects, index
-                            ) in group_by_relation_subjects"
+                <div class="form-inline" v-if="canRegisterClass">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Nhập mã HP"
+                    :value="subjectCode"
+                    @change="changeSubjectCode"
+                  />
+                  <button
+                    class="ml-2 btn btn-outline-info"
+                    @click="registerSubject"
+                    :disabled="isFindLoading"
+                  >
+                    ĐK HP
+                  </button>
+                </div>
+                <div></div>
+                <div
+                  :class="message.success ? 'text-success' : 'text-danger'"
+                  class="h5 mb-0 py-2 text-message"
+                >
+                  {{ message.content }}
+                </div>
+                <div class="mt-1">
+                  <div class="col-12 row">
+                    <div class="col-6 table-response">
+                      <h5>Danh sách học phần</h5>
+                      <table class="table-bordered table table-no-width">
+                        <thead>
+                          <tr class="align-middle">
+                            <th>Mã học phần</th>
+                            <th>Tên học phần</th>
+                            <th>TC</th>
+                            <th>Điều kiện</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr class="align-middle">
+                            <td class="p-0" v-for="(value, key) in filter">
+                              <div class="input-group">
+                                <input
+                                  class="form-control filter border-0"
+                                  type="text"
+                                  :name="key"
+                                  :value="value"
+                                  @keyup="search"
+                                />
+                                <div class="input-group-prepend border-0">
+                                  <span
+                                    class="input-group-text rounded-0 border-0 px-1"
+                                  >
+                                    <i class="fa fa-filter"></i>
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          <template v-if="!subjects.length">
+                            <tr class="align-middle">
+                              <td class="text-center no-data-text" colspan="6">
+                                <span v-if="hasQuerySearch">
+                                  Không tìm thấy học phần phù hợp
+                                </span>
+                                <span v-else>Nhập từ khóa để tìm kiếm</span>
+                              </td>
+                            </tr>
+                          </template>
+                          <template
+                            v-else
+                            v-for="{
+                              code,
+                              name,
+                              group_by_relation_subjects,
+                              credit,
+                            } in paginateSubjects"
                           >
-                            {{
-                              `${subjectRelations[index].label}: ${subjects
-                                .map(
-                                  ({ parent_subject }) => parent_subject.code,
-                                )
-                                .join(', ')}`
-                            }}
-                          </div>
-                        </td>
-                        <td class="text-center">
-                          <input
-                            type="checkbox"
-                            :checked="subjectCodes.includes(code)"
-                            @change="triggerCheck($event, code)"
-                            class="checkbox-custom"
-                          />
-                        </td>
-                      </tr>
-                    </template>
-                  </tbody>
-                </table>
+                            <tr class="align-middle">
+                              <td>
+                                {{ code }}
+                              </td>
+                              <td>
+                                {{ name }}
+                              </td>
+                              <td>
+                                {{ credit }}
+                              </td>
+                              <td>
+                                <div
+                                  v-for="(
+                                    subjects, index
+                                  ) in group_by_relation_subjects"
+                                >
+                                  {{
+                                    `${
+                                      subjectRelations[index].label
+                                    }: ${subjects
+                                      .map(
+                                        ({ parent_subject }) =>
+                                          parent_subject.code,
+                                      )
+                                      .join(', ')}`
+                                  }}
+                                </div>
+                              </td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                      <div
+                        v-if="totalPage > 1"
+                        :class="isLoadingData ? 'loading-opacity' : ''"
+                      >
+                        <paginate
+                          :page-range="5"
+                          :page-count="totalPage"
+                          :clickHandler="changePage"
+                          :prev-text="'Prev'"
+                          :next-text="'Next'"
+                          :page-class="'page-item'"
+                        >
+                        </paginate>
+                      </div>
+                    </div>
+                    <div class="col-6 table-response">
+                      <h5>Danh sách học phần đã đăng ký</h5>
+                      <table class="table-bordered table table-no-width">
+                        <thead>
+                          <tr class="align-middle">
+                            <th>Mã học phần</th>
+                            <th>Tên học phần</th>
+                            <th>TC</th>
+                            <th>Điều kiện</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr class="align-middle">
+                            <td class="p-0" v-for="(value, key) in filter">
+                              <div class="input-group">
+                                <input
+                                  class="form-control filter border-0"
+                                  type="text"
+                                  :name="key"
+                                  :value="value"
+                                  @keyup="search"
+                                />
+                                <div class="input-group-prepend border-0">
+                                  <span
+                                    class="input-group-text rounded-0 border-0 px-1"
+                                  >
+                                    <i class="fa fa-filter"></i>
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          <template v-if="!subjects.length">
+                            <tr class="align-middle">
+                              <td class="text-center no-data-text" colspan="6">
+                                <span v-if="hasQuerySearch">
+                                  Không tìm thấy học phần phù hợp
+                                </span>
+                                <span v-else>Nhập từ khóa để tìm kiếm</span>
+                              </td>
+                            </tr>
+                          </template>
+                          <template
+                            v-else
+                            v-for="{
+                              code,
+                              name,
+                              group_by_relation_subjects,
+                              credit,
+                            } in paginateSubjects"
+                          >
+                            <tr class="align-middle">
+                              <td>
+                                {{ code }}
+                              </td>
+                              <td>
+                                {{ name }}
+                              </td>
+                              <td>
+                                {{ credit }}
+                              </td>
+                              <td>
+                                <div
+                                  v-for="(
+                                    subjects, index
+                                  ) in group_by_relation_subjects"
+                                >
+                                  {{
+                                    `${
+                                      subjectRelations[index].label
+                                    }: ${subjects
+                                      .map(
+                                        ({ parent_subject }) =>
+                                          parent_subject.code,
+                                      )
+                                      .join(', ')}`
+                                  }}
+                                </div>
+                              </td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div
-            v-if="totalPage > 1"
-            class="card-footer"
-            :class="isLoadingData ? 'loading-opacity' : ''"
-          >
-            <paginate
-              :page-range="5"
-              :page-count="totalPage"
-              :clickHandler="changePage"
-              :prev-text="'Prev'"
-              :next-text="'Next'"
-              :page-class="'page-item'"
-            >
-            </paginate>
           </div>
         </div>
       </div>

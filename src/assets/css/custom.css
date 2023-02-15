@@ -82,3 +82,10 @@ td::first-letter {
 .page-item:not(.disabled, .active) {
   cursor: pointer;
 }
+
+.text-message {
+  min-height: 40px;
+}
+.table-no-width {
+  min-width: unset;
+}

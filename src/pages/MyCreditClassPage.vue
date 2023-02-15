@@ -23,7 +23,7 @@ export default {
       isLoadingData: false,
       isFindLoading: false,
       message: {
-        success: '',
+        success: false,
         content: '',
       },
       classCode: '',
@@ -168,7 +168,7 @@ export default {
               this.classCodes = [];
               this.message = {
                 success: true,
-                content: 'Đã gửi đăng ký. Xem kết quả trên giao diện',
+                content: message,
               };
               this.creditClasses = data.map((item) => ({
                 ...item,
@@ -229,20 +229,19 @@ export default {
                   </button>
                 </div>
                 <div
-                  v-if="message.content"
                   :class="message.success ? 'text-success' : 'text-danger'"
-                  class="h5 mb-0 mt-2"
+                  class="h5 mb-0 py-2 text-message"
                 >
                   {{ message.content }}
                 </div>
-                <div class="mt-5 table-responsive">
+                <div class="mt-2 table-responsive">
                   <table class="table table-bordered">
                     <tr>
                       <td class="p-0">
                         <table class="table mb-0">
                           <thead>
                             <tr class="table-borderless">
-                              <td colspan="10" class="border-0" >
+                              <td colspan="10" class="border-0">
                                 <div class="text-header-table mb-0 text-center">
                                   Danh sách lớp đăng ký
                                 </div>
@@ -431,10 +430,7 @@ export default {
                 </div>
                 <div class="row" v-if="canRegisterClass">
                   <div class="col-12 text-center">
-                    <button
-                      class="btn btn-primary"
-                      @click="submit"
-                    >
+                    <button class="btn btn-primary" @click="submit">
                       Gửi đăng ký
                     </button>
                   </div>

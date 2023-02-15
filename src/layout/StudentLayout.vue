@@ -59,27 +59,20 @@ export default {
 <template>
   <aside class="main-sidebar">
     <div>
-      <div class="px-2 d-flex justify-contents-between align-items-center">
-        <img
-          src="./../assets/logo.png"
-          alt=""
-          class="img-fluid logo profile-image-pic img-thumbnail my-3"
-        />
-        <h4 class="ml-2 text-capitalize mb-0">Đăng kí tín chỉ</h4>
+      <div class="py-3">
+        <h4 class="text-center text-capitalize mb-0">Đăng kí tín chỉ</h4>
       </div>
-      <div class="text-center h5" v-if="isNotCreditClassPage">
-        Thông tin sinh viên
-      </div>
+      <div class="ml-2 h5" v-if="isNotCreditClassPage">Thông tin sinh viên</div>
       <ul class="pr-4">
         <template v-if="isNotCreditClassPage">
           <li>
-            Mã sinh viên:
+            Mã SV:
             <b>
               {{ auth?.code }}
             </b>
           </li>
           <li>
-            Tên sinh viên:
+            Tên SV:
             <b>
               {{ auth?.name }}
             </b>
@@ -92,23 +85,51 @@ export default {
               </b>
             </li>
             <li>
+              Hệ đào tạo:
+              <b
+                v-if="
+                  auth.general_class?.education_training_program
+                    ?.education_program
+                "
+              >
+                {{
+                  auth.general_class.education_training_program
+                    .education_program.name
+                }}
+              </b>
+            </li>
+            <li>
               Ngành học:
-              <b v-if="auth.general_class?.training_program">
-                {{ auth.general_class.training_program.name }}
+              <b
+                v-if="
+                  auth.general_class?.education_training_program
+                    ?.training_program
+                "
+              >
+                {{
+                  auth.general_class.education_training_program.training_program
+                    .name
+                }}
+              </b>
+            </li>
+            <li>
+              Niên khóa:
+              <b>
+                {{ `Khóa ${auth.general_class.school_year}` }}
               </b>
             </li>
           </template>
           <template v-if="auth?.learning_alert">
             <li>
-              Số tín chỉ tối thiểu:
+              Đăng ký tối thiểu:
               <b>
-                {{ auth.learning_alert.min_register_credit }}
+                {{ `${auth.learning_alert.min_register_credit} TC` }}
               </b>
             </li>
             <li>
-              Số tín chỉ tối đa:
+              Đăng ký tối đa:
               <b>
-                {{ auth.learning_alert.max_register_credit }}
+                {{ `${auth.learning_alert.max_register_credit} TC` }}
               </b>
             </li>
             <li v-if="auth.learning_alert.type">
@@ -122,7 +143,7 @@ export default {
           </template>
           <li v-if="canRegisterClass" class="text-capitalize pt-5">
             <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
-              Đăng ký lớp tín chỉ
+              Danh sách lớp tín chỉ
             </router-link>
           </li>
           <li
@@ -131,7 +152,7 @@ export default {
             :class="!canRegisterClass ? 'pt-5' : 'pt-2'"
           >
             <router-link :to="PAGE_PATH.REGISTER_SUBJECT_PAGE">
-              Đăng ký học phần
+              Danh sách học phần
             </router-link>
           </li>
         </template>
