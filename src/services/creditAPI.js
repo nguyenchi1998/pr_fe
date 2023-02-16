@@ -42,6 +42,15 @@ const register = async (creditClasses) => {
   return data;
 };
 
+const fetchMyCreditSubjects = async (filter) => {
+  const { data } = await request().get(`${SUBJECT_RESOURCE}/mine`, {
+    params: filter,
+  });
+
+  return data;
+};
+
+
 const fetchCreditSubjects = async (filter) => {
   const { data } = await request().get(`${SUBJECT_RESOURCE}`, {
     params: filter,
@@ -65,5 +74,6 @@ export default {
   register,
   fetchCheckCanRegister,
   fetchCreditSubjects,
-  registerCreditSubject
+  registerCreditSubject,
+  fetchMyCreditSubjects
 };

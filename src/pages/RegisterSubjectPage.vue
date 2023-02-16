@@ -1,116 +1,192 @@
 <script>
-import * as _ from 'lodash';
+import creditAPI from '../services/creditAPI';
 import { removeEmptyObjects } from '../utils/helper';
+const DELETE_ACTION = 'delete';
+const INSERT_ACTION = 'insert';
+const SUCCESS_ACTION_STATUS = 'Thành công';
+const FAIL_ACTION_STATUS = 'Thất bại';
 import {
   CREDIT_CLASS_STATUS,
   CREDIT_CLASS_TYPE,
-  MY_CREDIT_CLASS_PAGE,
-  SUBJECT_RELATIONS,
   WEEKDAYS,
 } from '../config/constants.js';
-import Paginate from 'vuejs-paginate-next';
 import Swal from 'sweetalert2';
-import creditAPI from '../services/creditAPI';
+
+const ACTION_LABEL = {
+  [INSERT_ACTION]: 'Đăng ký',
+  [DELETE_ACTION]: 'Hủy đăng ký',
+};
 
 export default {
-  components: {
-    Paginate,
-  },
   data() {
     return {
+      isLoadingData: false,
+      isFindLoading: false,
       message: {
-        success: '',
+        success: false,
         content: '',
       },
-      isFindLoading: false,
-      isLoadingData: false,
-      perPage: 10,
-      page: 1,
+      classCode: '',
       filter: {
-        code: '',
-        name: '',
-        credit: '',
-        condition: '',
+        class_code: '',
+        subject_code: '',
+        subject_name: '',
+        note: '',
+        type: '',
+        status: '',
+        max_register: '',
+        registered_student: '',
       },
-      subjects: [],
-      subjectCode: '',
-      CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
+      creditSubjects: [],
+      subjectCodes: [],
       CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
+      CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       WEEKDAYS: WEEKDAYS,
+      INSERT_ACTION: INSERT_ACTION,
+      ACTION_LABEL: ACTION_LABEL,
     };
   },
-  created() {
-    this.fetchSubjects();
-  },
   computed: {
-    querySearch() {
-      return removeEmptyObjects(this.filter);
-    },
-    hasQuerySearch() {
-      return !_.isEmpty(this.querySearch);
-    },
-    paginateSubjects() {
-      return this.subjects.slice(
-        (this.page - 1) * this.perPage,
-        this.page * this.perPage,
+    totalCredit() {
+      return this.creditSubjects.reduce(
+        (total, item) => total + item?.subject?.credit,
+        0,
       );
     },
-    totalPage() {
-      return Math.ceil(this.subjects.length / this.perPage) ?? 0;
+    querySearch() {
+      return removeEmptyObjects(this.filter);
     },
     canRegisterClass() {
       return this.$store.getters.selectCanRegisterClass;
     },
-    subjectRelations() {
-      return SUBJECT_RELATIONS.map(({ label, value }) => ({ label, value }));
-    },
   },
-  watch: {
-    filter(newData, _oldData) {
-      this.fetchSubjects(newData);
-    },
+  created() {
+    this.fetchMyCreditSubjects();
   },
   methods: {
-    fetchSubjects: async function () {
+    fetchMyCreditSubjects: async function () {
       this.isLoadingData = true;
-      const response = await creditAPI.fetchCreditSubjects(this.querySearch);
-      if (!response.success) {
-        Swal.fire({
-          text: 'Quay lại Trang Đăng Ký Sinh Viên',
-          title: response.message,
-          icon: 'error',
-          confirmButtonText: 'OK',
-        }).then(({ isConfirmed }) => {
-          if (isConfirmed) {
-            this.$router.replace({ name: MY_CREDIT_CLASS_PAGE });
-          }
-        });
+      const { data, success, message } = await creditAPI.fetchMyCreditSubjects(
+        this.querySearch,
+      );
+      if (success) {
+        this.creditSubjects = data.map((item) => ({
+          ...item,
+          action: '',
+          action_status: SUCCESS_ACTION_STATUS,
+        }));
       } else {
-        this.subjects = response.data;
+        this.message = {
+          content: message,
+          success: success,
+        };
       }
       this.isLoadingData = false;
     },
-    search: _.debounce(function ({ target: { value, name } }) {
-      this.filter = { ...this.filter, [name]: value };
-    }, 500),
-    changePage(page) {
-      this.page = page;
+    fetchCreditClass: function () {
+      if (this.classCode) {
+        this.isFindLoading = true;
+        creditAPI
+          .fetchCreditClass(this.classCode)
+          .then(({ message, success, data }) => {
+            this.isFindLoading = false;
+            if (!success) {
+              this.message = {
+                success,
+                content: message,
+              };
+              return;
+            }
+            this.message = { success: false, content: '' };
+
+            if (this.creditSubjects.find(({ code }) => code === data.code)) {
+              this.message = {
+                success: false,
+                content: 'Lớp đã tồn tại trong danh sách',
+              };
+            } else {
+              this.creditSubjects = [
+                { ...data, action: INSERT_ACTION },
+                ...this.creditSubjects,
+              ];
+              this.classCode = '';
+            }
+          })
+          .catch(({ message, response, status }) => {
+            this.isFindLoading = false;
+            if (status)
+              this.message = {
+                success: false,
+                content: response?.data?.message,
+              };
+            Swal.fire({
+              title: message,
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          });
+      }
     },
-    clearFilter() {
-      for (const key in this.filter) this.filter[key] = '';
-    },
-    async registerSubject() {
-      const { success, message } = await creditAPI.registerCreditSubject(
-        this.subjectCode,
-      );
-      this.message = {
-        success: success,
-        content: message,
-      };
-    },
-    changeSubjectCode({ target: { value } }) {
+    changeClassCode({ target: { value } }) {
       const code = value.trim();
-      this.subjectCode = code;
+      if (code === '') {
+        this.message = {
+          success: false,
+          message: '',
+        };
+      }
+      this.classCode = code;
+    },
+    removeClass() {
+      this.creditSubjects = this.creditSubjects.map((item) => ({
+        ...item,
+        ...(this.subjectCodes.includes(item.code)
+          ? { action: DELETE_ACTION }
+          : {}),
+      }));
+    },
+    triggerCheck({ target: { checked } }, code) {
+      if (checked) {
+        this.subjectCodes = [...this.subjectCodes, code];
+      } else {
+        this.subjectCodes = this.subjectCodes.filter((item) => item !== code);
+      }
+    },
+    async submit() {
+      if (confirm('Bạn có muốn gửi đăng ký về hệ thống không?')) {
+        creditAPI
+          .register({
+            creditSubjects: this.creditSubjects.map(({ action, code }) => ({
+              action,
+              code,
+            })),
+          })
+          .then(({ data, success, message }) => {
+            if (success) {
+              this.subjectCodes = [];
+              this.message = {
+                success: true,
+                content: message,
+              };
+              this.creditSubjects = data.map((item) => ({
+                ...item,
+                action: '',
+                action_status: SUCCESS_ACTION_STATUS,
+              }));
+            } else {
+              this.message = {
+                success: false,
+                content: message,
+              };
+              this.creditSubjects = this.creditSubjects.map((item) => ({
+                ...item,
+                action: '',
+                action_status: FAIL_ACTION_STATUS,
+              }));
+            }
+          })
+          .catch();
+      }
     },
   },
 };
@@ -123,230 +199,132 @@ export default {
         <div class="card card-main">
           <div class="card-header">
             <div class="d-flex justify-content-between">
-              <h5 class="text-capitalize">
-                Danh sách học phần dành cho đăng ký học tập
+              <h5 class="text-capitalize flex-grow-1">
+                Trang đăng ký sinh viên
               </h5>
             </div>
           </div>
-          <div
-            class="card-body overflow-auto"
-            :class="isLoadingData ? 'loading-opacity' : ''"
-          >
+          <div class="card-body">
             <div style="position: relative">
-              <div v-if="isLoadingData" class="wrapper-loading loading">
+              <div v-if="isLoadingData" class="wrapper-loading">
                 <img src="./../assets/loading.gif" alt="" />
               </div>
-              <div
-                class="table-responsive"
-                :class="isLoadingData ? 'opacity-50' : ''"
-              >
+              <div :class="isLoadingData ? 'opacity-50' : ''">
                 <div class="form-inline" v-if="canRegisterClass">
                   <input
                     type="text"
                     class="form-control"
-                    placeholder="Nhập mã HP"
-                    :value="subjectCode"
-                    @change="changeSubjectCode"
+                    placeholder="Nhập mã lớp"
+                    :value="classCode"
+                    @change="changeClassCode"
                   />
                   <button
                     class="ml-2 btn btn-outline-info"
-                    @click="registerSubject"
+                    @click="fetchCreditClass"
                     :disabled="isFindLoading"
                   >
-                    ĐK HP
+                    ĐK lớp
                   </button>
                 </div>
-                <div></div>
                 <div
                   :class="message.success ? 'text-success' : 'text-danger'"
                   class="h5 mb-0 py-2 text-message"
                 >
                   {{ message.content }}
                 </div>
-                <div class="mt-1">
-                  <div class="col-12 row">
-                    <div class="col-6 table-response">
-                      <h5>Danh sách học phần</h5>
-                      <table class="table-bordered table table-no-width">
-                        <thead>
-                          <tr class="align-middle">
-                            <th>Mã học phần</th>
-                            <th>Tên học phần</th>
-                            <th>TC</th>
-                            <th>Điều kiện</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr class="align-middle">
-                            <td class="p-0" v-for="(value, key) in filter">
-                              <div class="input-group">
-                                <input
-                                  class="form-control filter border-0"
-                                  type="text"
-                                  :name="key"
-                                  :value="value"
-                                  @keyup="search"
-                                />
-                                <div class="input-group-prepend border-0">
-                                  <span
-                                    class="input-group-text rounded-0 border-0 px-1"
-                                  >
-                                    <i class="fa fa-filter"></i>
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                          <template v-if="!subjects.length">
-                            <tr class="align-middle">
-                              <td class="text-center no-data-text" colspan="6">
-                                <span v-if="hasQuerySearch">
-                                  Không tìm thấy học phần phù hợp
-                                </span>
-                                <span v-else>Nhập từ khóa để tìm kiếm</span>
-                              </td>
-                            </tr>
-                          </template>
-                          <template
-                            v-else
-                            v-for="{
-                              code,
-                              name,
-                              group_by_relation_subjects,
-                              credit,
-                            } in paginateSubjects"
-                          >
-                            <tr class="align-middle">
-                              <td>
-                                {{ code }}
-                              </td>
-                              <td>
-                                {{ name }}
-                              </td>
-                              <td>
-                                {{ credit }}
-                              </td>
-                              <td>
-                                <div
-                                  v-for="(
-                                    subjects, index
-                                  ) in group_by_relation_subjects"
-                                >
-                                  {{
-                                    `${
-                                      subjectRelations[index].label
-                                    }: ${subjects
-                                      .map(
-                                        ({ parent_subject }) =>
-                                          parent_subject.code,
-                                      )
-                                      .join(', ')}`
-                                  }}
-                                </div>
-                              </td>
-                            </tr>
-                          </template>
-                        </tbody>
-                      </table>
-                      <div
-                        v-if="totalPage > 1"
-                        :class="isLoadingData ? 'loading-opacity' : ''"
-                      >
-                        <paginate
-                          :page-range="5"
-                          :page-count="totalPage"
-                          :clickHandler="changePage"
-                          :prev-text="'Prev'"
-                          :next-text="'Next'"
-                          :page-class="'page-item'"
+                <div class="mt-2 table-responsive">
+                  <div class="text-header-table mb-0 text-center">
+                    Bảng đăng ký học phần kỳ 1234 của sinh viên 20200322P
+                  </div>
+                  <table class="table table-bordered">
+                    <thead>
+                      <tr class="table-bordered align-middle">
+                        <th>Mã học phần</th>
+                        <th>Tên học phần</th>
+                        <th>Tín chỉ</th>
+                        <th>Trạng thái ĐK</th>
+                        <th>Thực hiện</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody class="table-bordered">
+                      <tr v-if="!creditSubjects.length">
+                        <td
+                          class="fw-light text-center no-data-text"
+                          colspan="10"
                         >
-                        </paginate>
-                      </div>
-                    </div>
-                    <div class="col-6 table-response">
-                      <h5>Danh sách học phần đã đăng ký</h5>
-                      <table class="table-bordered table table-no-width">
-                        <thead>
-                          <tr class="align-middle">
-                            <th>Mã học phần</th>
-                            <th>Tên học phần</th>
-                            <th>TC</th>
-                            <th>Điều kiện</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr class="align-middle">
-                            <td class="p-0" v-for="(value, key) in filter">
-                              <div class="input-group">
-                                <input
-                                  class="form-control filter border-0"
-                                  type="text"
-                                  :name="key"
-                                  :value="value"
-                                  @keyup="search"
-                                />
-                                <div class="input-group-prepend border-0">
-                                  <span
-                                    class="input-group-text rounded-0 border-0 px-1"
-                                  >
-                                    <i class="fa fa-filter"></i>
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                          <template v-if="!subjects.length">
-                            <tr class="align-middle">
-                              <td class="text-center no-data-text" colspan="6">
-                                <span v-if="hasQuerySearch">
-                                  Không tìm thấy học phần phù hợp
-                                </span>
-                                <span v-else>Nhập từ khóa để tìm kiếm</span>
-                              </td>
-                            </tr>
-                          </template>
-                          <template
-                            v-else
-                            v-for="{
-                              code,
-                              name,
-                              group_by_relation_subjects,
-                              credit,
-                            } in paginateSubjects"
+                          Sinh viên chưa đăng ký HP nào trong kỳ này
+                        </td>
+                      </tr>
+                      <template v-else v-for="{ subject } in creditSubjects">
+                        <tr class="align-middle">
+                          <td>
+                            {{ subject.code }}
+                          </td>
+                          <td>
+                            {{ subject.name }}
+                          </td>
+                          <td>
+                            {{ subject.credit }}
+                          </td>
+                          <td>
+                            {{ ACTION_LABEL[action] }}
+                          </td>
+                          <td>
+                            <div v-if="subject">
+                              {{ subject.credit }}
+                            </div>
+                          </td>
+                          <td class="text-center" v-if="canRegisterClass">
+                            <input
+                              type="checkbox"
+                              class="checkbox-custom"
+                              :checked="subjectCodes.includes(code)"
+                              @change="triggerCheck($event, code)"
+                            />
+                          </td>
+                        </tr>
+                      </template>
+                      <tr>
+                        <td class="text-right" colspan="10">
+                          <span class="pr-5">
+                            Tổng số TC đăng ký: {{ totalCredit }}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-right" colspan="10">
+                          <button
+                            type="submit"
+                            class="btn"
+                            :class="
+                              creditSubjects.length
+                                ? 'btn-danger'
+                                : 'btn-secondary'
+                            "
+                            form="delete-class"
+                            @click="removeClass"
+                            :disabled="!subjectCodes.length"
                           >
-                            <tr class="align-middle">
-                              <td>
-                                {{ code }}
-                              </td>
-                              <td>
-                                {{ name }}
-                              </td>
-                              <td>
-                                {{ credit }}
-                              </td>
-                              <td>
-                                <div
-                                  v-for="(
-                                    subjects, index
-                                  ) in group_by_relation_subjects"
-                                >
-                                  {{
-                                    `${
-                                      subjectRelations[index].label
-                                    }: ${subjects
-                                      .map(
-                                        ({ parent_subject }) =>
-                                          parent_subject.code,
-                                      )
-                                      .join(', ')}`
-                                  }}
-                                </div>
-                              </td>
-                            </tr>
-                          </template>
-                        </tbody>
-                      </table>
-                    </div>
+                            Xóa các HP chọn
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="row" v-if="canRegisterClass">
+                  <div class="col-12 text-center">
+                    <button
+                      class="btn"
+                      :class="
+                        creditSubjects.length ? 'btn-primary' : 'btn-secondary'
+                      "
+                      :disabled="!creditSubjects.length"
+                      @click="submit"
+                    >
+                      Gửi đăng ký
+                    </button>
                   </div>
                 </div>
               </div>
@@ -358,7 +336,8 @@ export default {
   </div>
 </template>
 <style scoped>
-.clear-filter {
-  font-size: 15px;
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
 }
 </style>

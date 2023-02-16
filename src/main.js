@@ -9,7 +9,8 @@ import RegisterClassPage from './pages/RegisterClassPage.vue';
 import RegisterSubjectPage from './pages/RegisterSubjectPage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import MyCreditClassPage from './pages/MyCreditClassPage.vue';
-import NotFoundPage from './pages/NotFoundPage.vue';
+import NotFoundPage from './pages/Error/404.vue';
+import InternalServerErrorPage from './pages/Error/500.vue';
 import StudentLayout from './layout/StudentLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { isAuthenticated } from './services/authAPI';
@@ -19,7 +20,9 @@ import {
   REGISTER_CREDIT_CLASS_PAGE,
   LOGIN_PAGE,
   REGISTER_SUBJECT_PAGE,
-  STUDY_PROGRAM_PAGE
+  STUDY_PROGRAM_PAGE,
+  INTERNAL_SERVER_ERROR_PAGE,
+  NOT_FOUND_PAGE
 } from './config/constants';
 import Paginate from 'vuejs-paginate-next';
 import MyStudyProgramPage from './pages/MyStudyProgramPage.vue';
@@ -30,6 +33,8 @@ export const PAGE_PATH = {
   [MY_CREDIT_CLASS_PAGE]: '/',
   [REGISTER_SUBJECT_PAGE]: '/credit-subject',
   [STUDY_PROGRAM_PAGE]: '/study-program',
+  [INTERNAL_SERVER_ERROR_PAGE]: '/500',
+  [NOT_FOUND_PAGE]: '/404',
 };
 const router = createRouter({
   history: createWebHistory(),
@@ -69,6 +74,15 @@ const router = createRouter({
       name: LOGIN_PAGE,
     },
     {
+      path: PAGE_PATH.NOT_FOUND_PAGE,
+      component: NotFoundPage,
+      name: NOT_FOUND_PAGE,
+    }, {
+      path: PAGE_PATH.INTERNAL_SERVER_ERROR_PAGE,
+      component: InternalServerErrorPage,
+      name: INTERNAL_SERVER_ERROR_PAGE,
+    },
+    {
       path: '/:pathMatch(.*)*',
       component: NotFoundPage,
     },
@@ -94,6 +108,7 @@ const store = createStore({
         subject: false,
         class: false,
       },
+      current_semester: null,
     };
   },
   mutations: {
@@ -106,6 +121,9 @@ const store = createStore({
         ...payload,
       };
     },
+    setCurrentSemester(state, payload) {
+      state.current_semester = payload;
+    },
   },
   actions: {
     setAuth(context, payload) {
@@ -113,6 +131,9 @@ const store = createStore({
     },
     setCanRegister(context, payload) {
       context.commit('setCanRegister', payload);
+    },
+    setCurrentSemester(context, payload) {
+      context.commit('setCurrentSemester', payload);
     },
   },
   getters: {
@@ -124,6 +145,9 @@ const store = createStore({
     },
     selectCanRegisterClass(state) {
       return state.can_register.class;
+    },
+    selectCurrentSemester(state) {
+      return state.current_semester;
     },
   },
 });

@@ -34,17 +34,21 @@ export default {
     canRegisterSubject() {
       return this.$store.getters.selectCanRegisterSubject;
     },
+    currentSemester() {
+      return this.$store.getters.selectCurrentSemester;
+    },
   },
   created() {
     this.fetchAuth();
     this.fetchCanRegister();
   },
   methods: {
-    ...mapActions(['setAuth', 'setCanRegister']),
+    ...mapActions(['setAuth', 'setCanRegister', 'setCurrentSemester']),
     async fetchAuth() {
       const response = await authAPI.fetchAuthUser();
       if (response.success) {
-        await this.setAuth(response.data);
+        await this.setAuth(response.data.auth);
+        await this.setCurrentSemester(response.data.current_semester);
       }
     },
     async fetchCanRegister() {
@@ -65,18 +69,20 @@ export default {
       <div class="ml-2 h5" v-if="isNotCreditClassPage">Thông tin sinh viên</div>
       <ul class="pr-4">
         <template v-if="isNotCreditClassPage">
-          <li>
-            Mã SV:
-            <b>
-              {{ auth?.code }}
-            </b>
-          </li>
-          <li>
-            Tên SV:
-            <b>
-              {{ auth?.name }}
-            </b>
-          </li>
+          <template v-if="auth">
+            <li>
+              Mã SV:
+              <b>
+                {{ auth?.code }}
+              </b>
+            </li>
+            <li>
+              Tên SV:
+              <b>
+                {{ auth?.name }}
+              </b>
+            </li>
+          </template>
           <template v-if="auth?.general_class">
             <li>
               Lớp:
@@ -140,10 +146,16 @@ export default {
                 </b>
               </div>
             </li>
+            <li v-if="currentSemester">
+              Học kỳ hiện tại:
+              <b>
+                {{ currentSemester }}
+              </b>
+            </li>
           </template>
           <li v-if="canRegisterClass" class="text-capitalize pt-5">
             <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
-              Danh sách lớp tín chỉ
+              Đăng ký tín chỉ
             </router-link>
           </li>
           <li
@@ -152,7 +164,7 @@ export default {
             :class="!canRegisterClass ? 'pt-5' : 'pt-2'"
           >
             <router-link :to="PAGE_PATH.REGISTER_SUBJECT_PAGE">
-              Danh sách học phần
+              Đăng ký học phần
             </router-link>
           </li>
         </template>

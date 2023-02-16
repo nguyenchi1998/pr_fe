@@ -11,6 +11,7 @@ import {
   removeAuthToken,
   setAccessToken,
 } from './storage';
+import Swal from 'sweetalert2';
 
 export const handle500Error = () => {
   window.location.href = `/500`;
