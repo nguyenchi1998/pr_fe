@@ -52,7 +52,9 @@ export default {
     <div class="row">
       <div class="col-md-5 offset-md-3">
         <h2 class="text-center text-dark mt-5">Trang Đăng Nhập</h2>
-        <div class="text-center mb-5 text-dark">Made with bootstrap</div>
+        <div class="text-center mb-5 text-dark">
+          Made by <b>Chi.NN@sis.hust.edu.vn</b>
+        </div>
         <div class="card my-3">
           <div class="card-body p-lg-5">
             <div class="text-center mb-2">
@@ -69,6 +71,7 @@ export default {
                 class="form-control"
                 id="Email"
                 name="email"
+                :class="errorMessage !== '' ? ' border-danger' : ''"
                 aria-describedby="emailHelp"
                 :value="credential.email"
                 placeholder="User Name"
@@ -82,7 +85,6 @@ export default {
                 id="password"
                 name="password"
                 placeholder="Mật khẩu"
-                :class="errorMessage !== '' ? ' border-danger' : ''"
                 :value="credential.password"
                 @change="changeCredential"
               />
