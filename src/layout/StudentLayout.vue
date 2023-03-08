@@ -28,33 +28,20 @@ export default {
     isNotCreditClassPage() {
       return this.$route.name !== REGISTER_CREDIT_CLASS_PAGE;
     },
-    canRegisterClass() {
-      return this.$store.getters.selectCanRegisterClass;
-    },
-    canRegisterSubject() {
-      return this.$store.getters.selectCanRegisterSubject;
-    },
     currentSemester() {
       return this.$store.getters.selectCurrentSemester;
     },
   },
   created() {
     this.fetchAuth();
-    this.fetchCanRegister();
   },
   methods: {
-    ...mapActions(['setAuth', 'setCanRegister', 'setCurrentSemester']),
+    ...mapActions(['setAuth', 'setCurrentSemester']),
     async fetchAuth() {
       const response = await authAPI.fetchAuthUser();
       if (response.success) {
         await this.setAuth(response.data.auth);
         await this.setCurrentSemester(response.data.current_semester);
-      }
-    },
-    async fetchCanRegister() {
-      const response = await creditAPI.fetchCheckCanRegister();
-      if (response.success) {
-        await this.setCanRegister(response.data);
       }
     },
   },
@@ -69,102 +56,33 @@ export default {
       <div class="ml-2 h5" v-if="isNotCreditClassPage">Thông tin sinh viên</div>
       <ul class="pr-4">
         <template v-if="isNotCreditClassPage">
-          <template v-if="auth">
-            <li>
-              Mã SV:
-              <b>
-                {{ auth?.code }}
-              </b>
-            </li>
-            <li>
-              Tên SV:
-              <b>
-                {{ auth?.name }}
-              </b>
-            </li>
-          </template>
-          <template v-if="auth?.general_class">
-            <li>
-              Lớp:
-              <b>
-                {{ auth.general_class.name }}
-              </b>
-            </li>
-            <li>
-              Hệ đào tạo:
-              <b
-                v-if="
-                  auth.general_class?.education_training_program
-                    ?.education_program
-                "
-              >
-                {{
-                  auth.general_class.education_training_program
-                    .education_program.name
-                }}
-              </b>
-            </li>
-            <li>
-              Ngành học:
-              <b
-                v-if="
-                  auth.general_class?.education_training_program
-                    ?.training_program
-                "
-              >
-                {{
-                  auth.general_class.education_training_program.training_program
-                    .name
-                }}
-              </b>
-            </li>
-            <li>
-              Niên khóa:
-              <b>
-                {{ `Khóa ${auth.general_class.school_year}` }}
-              </b>
-            </li>
-          </template>
-          <template v-if="auth?.learning_alert">
-            <li>
-              Đăng ký tối thiểu:
-              <b>
-                {{ `${auth.learning_alert.min_register_credit} TC` }}
-              </b>
-            </li>
-            <li>
-              Đăng ký tối đa:
-              <b>
-                {{ `${auth.learning_alert.max_register_credit} TC` }}
-              </b>
-            </li>
-            <li v-if="auth.learning_alert.type">
-              <div class="text-danger">
-                Cảnh báo học tập:
-                <b>
-                  {{ auth.learning_alert.name }}
-                </b>
-              </div>
-            </li>
-            <li v-if="currentSemester">
-              Học kỳ hiện tại:
-              <b>
-                {{ currentSemester }}
-              </b>
-            </li>
-          </template>
-          <li v-if="canRegisterClass" class="text-capitalize pt-5">
+          <li>
+            Mã SV:
+            <b v-if="auth?.code">
+              {{ auth.code }}
+            </b>
+          </li>
+          <li>
+            Tên SV:
+            <b v-if="auth?.name">
+              {{ auth.name }}
+            </b>
+          </li>
+          <li>
+            Ngành học:
+            <b v-if="auth?.training_program">
+              {{ auth?.training_program.name }}
+            </b>
+          </li>
+          <li v-if="currentSemester">
+            Học kỳ hiện tại:
+            <b>
+              {{ currentSemester }}
+            </b>
+          </li>
+          <li class="text-capitalize pt-5">
             <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
               Đăng ký tín chỉ
-            </router-link>
-          </li>
-          <li
-            v-if="canRegisterSubject"
-            class="text-capitalize"
-            :class="!canRegisterClass ? 'pt-5' : 'pt-2'"
-          >
-            <router-link :to="PAGE_PATH.REGISTER_SUBJECT_PAGE">
-              Đăng ký học phần
             </router-link>
           </li>
         </template>

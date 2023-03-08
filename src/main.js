@@ -6,7 +6,6 @@ import 'mosha-vue-toastify/dist/style.css';
 
 import 'sweetalert2/src/sweetalert2.scss';
 import RegisterClassPage from './pages/RegisterClassPage.vue';
-import RegisterSubjectPage from './pages/RegisterSubjectPage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import MyCreditClassPage from './pages/MyCreditClassPage.vue';
 import NotFoundPage from './pages/Error/404.vue';
@@ -19,7 +18,6 @@ import {
   MY_CREDIT_CLASS_PAGE,
   REGISTER_CREDIT_CLASS_PAGE,
   LOGIN_PAGE,
-  REGISTER_SUBJECT_PAGE,
   STUDY_PROGRAM_PAGE,
   INTERNAL_SERVER_ERROR_PAGE,
   NOT_FOUND_PAGE
@@ -31,7 +29,6 @@ export const PAGE_PATH = {
   [REGISTER_CREDIT_CLASS_PAGE]: '/credit-class',
   [LOGIN_PAGE]: '/login',
   [MY_CREDIT_CLASS_PAGE]: '/',
-  [REGISTER_SUBJECT_PAGE]: '/credit-subject',
   [STUDY_PROGRAM_PAGE]: '/study-program',
   [INTERNAL_SERVER_ERROR_PAGE]: '/500',
   [NOT_FOUND_PAGE]: '/404',
@@ -50,11 +47,6 @@ const router = createRouter({
           path: PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE,
           component: RegisterClassPage,
           name: REGISTER_CREDIT_CLASS_PAGE,
-        },
-        {
-          path: PAGE_PATH.REGISTER_SUBJECT_PAGE,
-          component: RegisterSubjectPage,
-          name: REGISTER_SUBJECT_PAGE,
         },
         {
           path: PAGE_PATH.MY_CREDIT_CLASS_PAGE,
@@ -115,12 +107,6 @@ const store = createStore({
     setAuth(state, payload) {
       state.auth = payload;
     },
-    setCanRegister(state, payload) {
-      state.can_register = {
-        ...state.can_register,
-        ...payload,
-      };
-    },
     setCurrentSemester(state, payload) {
       state.current_semester = payload;
     },
@@ -129,9 +115,6 @@ const store = createStore({
     setAuth(context, payload) {
       context.commit('setAuth', payload);
     },
-    setCanRegister(context, payload) {
-      context.commit('setCanRegister', payload);
-    },
     setCurrentSemester(context, payload) {
       context.commit('setCurrentSemester', payload);
     },
@@ -139,12 +122,6 @@ const store = createStore({
   getters: {
     selectAuth(state) {
       return state.auth;
-    },
-    selectCanRegisterSubject(state) {
-      return state.can_register.subject;
-    },
-    selectCanRegisterClass(state) {
-      return state.can_register.class;
     },
     selectCurrentSemester(state) {
       return state.current_semester;

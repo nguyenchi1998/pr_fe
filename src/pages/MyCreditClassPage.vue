@@ -56,9 +56,6 @@ export default {
     querySearch() {
       return removeEmptyObjects(this.filter);
     },
-    canRegisterClass() {
-      return this.$store.getters.selectCanRegisterClass;
-    },
   },
   created() {
     this.fetchMyCreditClasses();
@@ -212,7 +209,7 @@ export default {
                 <img src="./../assets/loading.gif" alt="" />
               </div>
               <div :class="isLoadingData ? 'opacity-50' : ''">
-                <div class="form-inline" v-if="canRegisterClass">
+                <div class="form-inline">
                   <input
                     type="text"
                     class="form-control"
@@ -249,15 +246,12 @@ export default {
                             </tr>
                             <tr class="table-bordered align-middle">
                               <th>Mã lớp</th>
-                              <th>Mã lớp kèm</th>
                               <th>Tên lớp</th>
                               <th>Mã học phần</th>
-                              <th>Loại lớp</th>
-                              <th>TT lớp</th>
                               <th>Trạng thái ĐK</th>
                               <th>Thực hiện</th>
                               <th>Tín chỉ</th>
-                              <th v-if="canRegisterClass">Hành động</th>
+                              <th>Hành động</th>
                             </tr>
                           </thead>
                           <tbody class="table-bordered">
@@ -266,44 +260,22 @@ export default {
                                 v-for="{
                                   code,
                                   subject,
-                                  type,
-                                  status,
-                                  name,
-                                  relation_credit_class,
                                   action,
                                   action_status,
                                 } in creditClasses"
+                                v-bind:key="code"
                               >
                                 <tr class="align-middle">
                                   <td>
                                     {{ code }}
                                   </td>
                                   <td>
-                                    <div v-if="relation_credit_class">
-                                      {{ relation_credit_class.code }}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    {{ name }}
+                                    {{ subject.name }}
                                   </td>
                                   <td>
                                     <div v-if="subject">
                                       {{ subject.code }}
                                     </div>
-                                  </td>
-                                  <td>
-                                    {{
-                                      CREDIT_CLASS_TYPE.find(
-                                        ({ value }) => value === type,
-                                      )?.label
-                                    }}
-                                  </td>
-                                  <td>
-                                    {{
-                                      CREDIT_CLASS_STATUS.find(
-                                        ({ value }) => value === status,
-                                      )?.label
-                                    }}
                                   </td>
                                   <td>{{ action_status }}</td>
                                   <td>
@@ -314,10 +286,7 @@ export default {
                                       {{ subject.credit }}
                                     </div>
                                   </td>
-                                  <td
-                                    class="text-center"
-                                    v-if="canRegisterClass"
-                                  >
+                                  <td class="text-center">
                                     <input
                                       type="checkbox"
                                       class="checkbox-custom"
@@ -334,7 +303,7 @@ export default {
                                   </span>
                                 </td>
                               </tr>
-                              <tr v-if="canRegisterClass">
+                              <tr>
                                 <td class="text-right" colspan="10">
                                   <div class="py-1">
                                     <button
@@ -370,50 +339,48 @@ export default {
                               </td>
                             </tr>
                             <tr class="table-bordered">
-                              <th>Thứ</th>
-                              <th>Thời gian</th>
-                              <th>Tuần học</th>
+                              <th>Thứ học</th>
+                              <th>Buổi học</th>
                               <th>Phòng học</th>
                               <th>Lớp học</th>
                             </tr>
                           </thead>
                           <tbody class="table-bordered">
-                            <tr
-                              v-if="creditClasses.length"
-                              v-for="{
-                                code,
-                                weekday,
-                                weeks,
-                                study_room,
-                                time_frame,
-                              } in creditClasses"
-                            >
-                              <td>
-                                {{
-                                  WEEKDAYS.find(
-                                    ({ value }) => value === weekday,
-                                  )?.label
-                                }}
-                              </td>
-                              <td>
-                                <div v-if="time_frame">
-                                  {{
-                                    `${time_frame.start_time}  - ${time_frame.end_time}`
-                                  }}
-                                </div>
-                              </td>
-                              <td>
-                                {{ weeks }}
-                              </td>
-                              <td>
-                                <div v-if="study_room">
-                                  {{ study_room.name ?? '' }}
-                                </div>
-                              </td>
-                              <td>
-                                {{ code }}
-                              </td>
-                            </tr>
+                            <template v-if="creditClasses.length">
+                              <template
+                                v-for="{
+                                  code,
+                                  schedules,
+                                  study_room,
+                                } in creditClasses"
+                              >
+                                <tr
+                                  v-for="{ id, weekday, time } in schedules"
+                                  :key="id"
+                                >
+                                  <td>
+                                    {{
+                                      WEEKDAYS.find(
+                                        ({ value }) => value == weekday,
+                                      )?.label
+                                    }}
+                                  </td>
+                                  <td>
+                                    <div v-if="time">
+                                      {{ time == 1 ? 'Sáng' : 'Chiều' }}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div v-if="study_room">
+                                      {{ study_room.name ?? '' }}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    {{ code }}
+                                  </td>
+                                </tr>
+                              </template>
+                            </template>
                             <tr v-else>
                               <td
                                 class="fw-light text-center no-data-text"
@@ -428,7 +395,7 @@ export default {
                     </tr>
                   </table>
                 </div>
-                <div class="row" v-if="canRegisterClass">
+                <div class="row">
                   <div class="col-12 text-center">
                     <button class="btn btn-primary" @click="submit">
                       Gửi đăng ký

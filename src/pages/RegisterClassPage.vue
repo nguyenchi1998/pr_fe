@@ -55,9 +55,6 @@ export default {
     totalPage() {
       return Math.ceil(this.creditClasses.length / this.perPage) ?? 0;
     },
-    canRegisterClass() {
-      return this.$store.getters.selectCanRegisterClass;
-    },
   },
   watch: {
     filter(newData, _oldData) {
@@ -133,7 +130,11 @@ export default {
                   </thead>
                   <tbody>
                     <tr class="align-middle">
-                      <td class="p-0" v-for="(value, key) in filter">
+                      <td
+                        class="p-0"
+                        v-for="(value, key) in filter"
+                        v-bind:key="key"
+                      >
                         <div class="input-group">
                           <input
                             class="form-control border-0"
@@ -176,14 +177,11 @@ export default {
                         type,
                         status,
                         max_register,
-                        name,
                         students,
-                        relation_credit_class,
-                        weekday,
-                        weeks,
                         study_room,
-                        time_frame,
+                        schedules,
                       } in creditClassPaginate"
+                      v-bind:key="code"
                     >
                       <tr class="table-secondary align-middle">
                         <th>
@@ -223,18 +221,12 @@ export default {
                         <td colspan="9" class="p-0">
                           <div class="px-3 py-2">
                             <div>
-                              Tên lớp: <b>{{ name }}</b>
+                              Tên lớp: <b>{{ subject.name }}</b>
                             </div>
                             <div>
                               Khoa/viện:
-                              <b v-if="subject && subject.academy">
-                                {{ subject.academy.code }}
-                              </b>
-                            </div>
-                            <div>
-                              Mã lớp kèm:
-                              <b v-if="relation_credit_class">
-                                {{ relation_credit_class.code ?? '' }}
+                              <b v-if="subject && subject?.department?.academy">
+                                {{ subject.department.academy.code }}
                               </b>
                             </div>
                           </div>
@@ -242,28 +234,29 @@ export default {
                             <table class="table-sm mb-0 table">
                               <tbody>
                                 <tr>
-                                  <td>Thứ</td>
+                                  <td>Buổi học</td>
                                   <td>Thời gian</td>
-                                  <td>Tuần học</td>
                                   <td>Phòng học</td>
                                 </tr>
-                                <tr>
+                                <tr
+                                  v-for="(
+                                    { weekday, time }, index
+                                  ) in schedules"
+                                  :key="index"
+                                >
                                   <td>
-                                    {{
-                                      ` ${
+                                    <div v-if="weekday">
+                                      {{
                                         WEEKDAYS.find(
-                                          ({ value }) => value === weekday,
+                                          ({ value }) => value == weekday,
                                         )?.label
-                                      }`
-                                    }}
+                                      }}
+                                    </div>
                                   </td>
                                   <td>
-                                    {{
-                                      `${time_frame.start_time}  - ${time_frame.end_time}`
-                                    }}
-                                  </td>
-                                  <td>
-                                    {{ weeks }}
+                                    <div v-if="time">
+                                      {{ time === 1 ? 'Sáng' : 'Chiều' }}
+                                    </div>
                                   </td>
                                   <td>
                                     <div v-if="study_room">

@@ -12,28 +12,12 @@ export default {
   data() {
     return {
       isLoadingData: false,
-      filter: {
-        code: '',
-        name: '',
-        semester: '',
-        force: '',
-        credit: '',
-        study_credit: '',
-        study_code: '',
-        note: '',
-        number_mark: '',
-        text_mark: '',
-        academy: '',
-      },
       studyPrograms: [],
     };
   },
   computed: {
     auth() {
       return this.$store.getters.selectAuth;
-    },
-    querySearch() {
-      return removeEmptyObjects(this.filter);
     },
     mapStudyPrograms() {
       return this.studyPrograms.map(
@@ -47,7 +31,6 @@ export default {
               ...study_program_detail,
               number_mark: largest_mark_credit_class_student?.number_mark ?? '',
               text_mark: largest_mark_credit_class_student?.text_mark ?? '',
-              isLearn: largest_mark_credit_class_student,
             }),
           ),
           totalPassCredit: study_program_details.reduce(
@@ -65,11 +48,6 @@ export default {
   created() {
     this.fetchSubjects();
   },
-  watch: {
-    filter(_oldData, newData) {
-      this.fetchSubjects(newData);
-    },
-  },
   beforeRouteLeave(_to, _from, next) {
     if (this.progress) {
       if (confirm('Dữ liệu chưa được gửi!. Vẫn xác nhận rời trang?')) {
@@ -83,7 +61,7 @@ export default {
     fetchSubjects: function () {
       this.isLoadingData = true;
       studyProgramAPI
-        .fetchMyStudyPrograms(this.querySearch)
+        .fetchMyStudyPrograms()
         .then(({ data }) => {
           this.isLoadingData = false;
           this.studyPrograms = data;
@@ -100,9 +78,6 @@ export default {
     changePage(page) {
       this.page = page;
     },
-    search: _.debounce(function ({ target: { value, name } }) {
-      this.filter = { ...this.filter, [name]: value };
-    }, 500),
   },
 };
 </script>
@@ -137,35 +112,11 @@ export default {
                     <tr class="table-bordered align-middle">
                       <th>Mã HP</th>
                       <th>Tên HP</th>
-                      <th>Kỳ học</th>
                       <th>Bắt buộc</th>
-                      <th>TC ĐT</th>
-                      <th>TC học</th>
-                      <th>Mã HP học</th>
-                      <th>Ghi chú loại HP</th>
+                      <th>Tín chỉ</th>
                       <th>Điểm chữ</th>
                       <th>Điểm số</th>
                       <th>Viện/Khoa</th>
-                    </tr>
-                    <tr class="align-middle">
-                      <td class="p-0" v-for="(value, key) in filter">
-                        <div class="input-group">
-                          <input
-                            class="form-control filter border-0"
-                            type="text"
-                            :name="key"
-                            :value="value"
-                            @keyup="search"
-                          />
-                          <div class="input-group-prepend border-0">
-                            <span
-                              class="input-group-text rounded-0 border-0 px-1"
-                            >
-                              <i class="fa fa-filter"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </td>
                     </tr>
                   </thead>
                   <tbody class="table-bordered">
@@ -178,6 +129,7 @@ export default {
                           required_credit,
                           totalPassCredit,
                         } in mapStudyPrograms"
+                        :key="id"
                       >
                         <tr class="bg-gradient-lightblue">
                           <th colspan="11" class="p-2">
@@ -191,19 +143,16 @@ export default {
                           </th>
                         </tr>
                         <tr
-                          v-for="{
-                            subject: {
-                              code,
-                              name,
-                              credit,
-                              academy,
-                              register_study_semester,
+                          v-for="(
+                            {
+                              subject: { code, name, credit, department },
+                              force,
+                              number_mark,
+                              text_mark,
                             },
-                            force,
-                            number_mark,
-                            text_mark,
-                            isLearn,
-                          } in study_program_details"
+                            index
+                          ) in study_program_details"
+                          :key="index"
                         >
                           <td>
                             {{ code }}
@@ -212,21 +161,13 @@ export default {
                             {{ name }}
                           </td>
                           <td class="text-center">
-                            {{ register_study_semester }}
-                          </td>
-                          <td class="text-center">
                             <i v-if="force" class="fa fa-check-square"></i>
                             <i v-else class="fa fa-square"></i>
                           </td>
                           <td class="text-center">{{ credit }}</td>
-                          <td class="text-center">
-                            {{ isLearn ? credit : '' }}
-                          </td>
-                          <td>{{ isLearn ? code : '' }}</td>
-                          <td>{{ study_program_detail?.note }}</td>
                           <td>{{ text_mark }}</td>
                           <td>{{ number_mark }}</td>
-                          <td>{{ academy.code }}</td>
+                          <td>{{ department.academy.name }}</td>
                         </tr>
                       </template>
                     </template>

@@ -2,13 +2,7 @@ import { request } from '../utils/request';
 
 const BASE_RESOURCE = '/credit';
 const CLASS_RESOURCE = `${BASE_RESOURCE}/classes`;
-const SUBJECT_RESOURCE = `${BASE_RESOURCE}/subjects`;
 
-const fetchCheckCanRegister = async () => {
-  const { data } = await request().get(`${BASE_RESOURCE}/check-can-register`);
-
-  return data;
-};
 
 const fetchCreditClasses = async (filter) => {
   const { data } = await request().get(`${CLASS_RESOURCE}`, {
@@ -42,38 +36,10 @@ const register = async (creditClasses) => {
   return data;
 };
 
-const fetchMyCreditSubjects = async (filter) => {
-  const { data } = await request().get(`${SUBJECT_RESOURCE}/mine`, {
-    params: filter,
-  });
-
-  return data;
-};
-
-
-const fetchCreditSubjects = async (filter) => {
-  const { data } = await request().get(`${SUBJECT_RESOURCE}`, {
-    params: filter,
-  });
-
-  return data;
-};
-
-const registerCreditSubject = async (subjectCode) => {
-  const { data } = await request().post(`${SUBJECT_RESOURCE}`, {
-    subjectCode
-  });
-
-  return data;
-};
 
 export default {
   fetchCreditClasses,
   fetchMyCreditClass,
   fetchCreditClass,
   register,
-  fetchCheckCanRegister,
-  fetchCreditSubjects,
-  registerCreditSubject,
-  fetchMyCreditSubjects
 };

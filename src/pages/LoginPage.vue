@@ -8,31 +8,27 @@ export default {
     return {
       credential: {
         email: 'Chi.NN1@sis.hust.edu.vn',
-        password: 'password',
+        password: '123456',
       },
       isLoading: false,
       errorMessage: '',
     };
   },
   methods: {
-    submitAuth() {
+    async submitAuth() {
       this.isLoading = true;
-      signIn(this.credential)
-        .then(({ data: { data } }) => {
-          setAuthToken(data);
-          const { returnUrl } = this.$route.query;
-          this.$router.replace({
-            path: returnUrl ?? PAGE_PATH.MY_CREDIT_CLASS_PAGE,
-          });
-        })
-        .catch(({ response }) => {
-          if (response.data) {
-            this.errorMessage = response.data?.message;
-          }
-        })
-        .finally(() => {
-          this.isLoading = false;
+      const {
+        data: { data, success, message },
+      } = await signIn(this.credential);
+      console.log(success);
+      if (success) {
+        setAuthToken(data);
+        const { returnUrl } = this.$route.query;
+        this.$router.replace({
+          path: returnUrl ?? PAGE_PATH.MY_CREDIT_CLASS_PAGE,
         });
+      } else this.errorMessage = message;
+      this.isLoading = false;
     },
     changeCredential({ target: { value, name }, keyCode }) {
       if (keyCode === 13) {
