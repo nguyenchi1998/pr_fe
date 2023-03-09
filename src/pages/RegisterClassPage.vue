@@ -4,7 +4,6 @@ import * as _ from 'lodash';
 import { removeEmptyObjects } from '../utils/helper';
 import {
   CREDIT_CLASS_STATUS,
-  CREDIT_CLASS_TYPE,
   MY_CREDIT_CLASS_PAGE,
   WEEKDAYS,
 } from '../config/constants.js';
@@ -25,14 +24,12 @@ export default {
         subject_code: '',
         subject_name: '',
         note: '',
-        type: '',
         status: '',
         max_register: '',
         registered_student: '',
       },
       creditClasses: [],
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
-      CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       WEEKDAYS: WEEKDAYS,
     };
   },
@@ -122,7 +119,6 @@ export default {
                       <td>Mã học phần</td>
                       <td>Tên học phần</td>
                       <td>Ghi chú</td>
-                      <td>Loại lớp</td>
                       <td>Trạng thái</td>
                       <td>Max ĐK</td>
                       <td>Đã ĐK</td>
@@ -174,7 +170,6 @@ export default {
                         code,
                         subject,
                         note,
-                        type,
                         status,
                         max_register,
                         students,
@@ -195,13 +190,6 @@ export default {
                         </th>
                         <th>
                           {{ note }}
-                        </th>
-                        <th>
-                          {{
-                            CREDIT_CLASS_TYPE.find(
-                              ({ value }) => value === type,
-                            )?.label
-                          }}
                         </th>
                         <th>
                           {{

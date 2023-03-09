@@ -5,11 +5,7 @@ const DELETE_ACTION = 'delete';
 const INSERT_ACTION = 'insert';
 const SUCCESS_ACTION_STATUS = 'Thành công';
 const FAIL_ACTION_STATUS = 'Thất bại';
-import {
-  CREDIT_CLASS_STATUS,
-  CREDIT_CLASS_TYPE,
-  WEEKDAYS,
-} from '../config/constants.js';
+import { CREDIT_CLASS_STATUS, WEEKDAYS } from '../config/constants.js';
 import Swal from 'sweetalert2';
 
 const ACTION_LABEL = {
@@ -39,7 +35,6 @@ export default {
       },
       creditClasses: [],
       classCodes: [],
-      CREDIT_CLASS_TYPE: CREDIT_CLASS_TYPE,
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
       WEEKDAYS: WEEKDAYS,
       INSERT_ACTION: INSERT_ACTION,
