@@ -10,8 +10,12 @@ export const CREDIT_CLASS_STATUS = [
     value: 3,
   },
   {
-    label: 'Đã kết thúc',
+    label: 'Chốt danh sách học',
     value: 4,
+  },
+  {
+    label: 'Đã kết thúc',
+    value: 5,
   },
 ];
 export const WEEKDAYS = [
