@@ -4,16 +4,13 @@ export const CREDIT_CLASS_STATUS = [
   {
     label: 'Mở đăng ký',
     value: 2,
-  },
-  {
+  }, {
     label: 'Đang học',
     value: 3,
-  },
-  {
+  }, {
     label: 'Chốt danh sách học',
     value: 4,
-  },
-  {
+  }, {
     label: 'Đã kết thúc',
     value: 5,
   },
@@ -22,28 +19,22 @@ export const WEEKDAYS = [
   {
     label: 'Thứ 2',
     value: 1,
-  },
-  {
+  }, {
     label: 'Thứ 3',
     value: 2,
-  },
-  {
+  }, {
     label: 'Thứ 4',
     value: 3,
-  },
-  {
+  }, {
     label: 'Thứ 5',
     value: 4,
-  },
-  {
+  }, {
     label: 'Thứ 6',
     value: 5,
-  },
-  {
+  }, {
     label: 'Thứ 7',
     value: 6,
-  },
-  {
+  }, {
     label: 'Chủ nhật',
     value: 7,
   },

@@ -56,7 +56,7 @@ thead .col-sm {
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: start;
   height: calc(100vh - 175px);
 }
 .card-main {

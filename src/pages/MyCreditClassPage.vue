@@ -92,19 +92,35 @@ export default {
               return;
             }
             this.message = { success: false, content: '' };
-
-            if (this.creditClasses.find(({ code }) => code === data.code)) {
+            // kiểm tra đã tồn tại trong danh sách hiện tại
+            if (this.creditClasses.find(({ code }) => code == data.code)) {
               this.message = {
                 success: false,
                 content: 'Lớp đã tồn tại trong danh sách',
               };
-            } else {
-              this.creditClasses = [
-                { ...data, action: INSERT_ACTION },
-                ...this.creditClasses,
-              ];
-              this.classCode = '';
+              return;
             }
+            // kiểm tra thời khóa biểu trùng
+            const conflictClass = this.creditClasses.find(({ schedules }) =>
+              schedules.some(({ time, weekday }) =>
+                data.schedules.some(
+                  (schedule) =>
+                    schedule.time == time && schedule.weekday == weekday,
+                ),
+              ),
+            );
+            if (conflictClass != undefined) {
+              this.message = {
+                success: false,
+                content: `Thời khóa biểu lớp ${data.code} >< ${conflictClass.code} bị xung đột trong danh sách`,
+              };
+              return;
+            }
+            this.creditClasses = [
+              { ...data, action: INSERT_ACTION },
+              ...this.creditClasses,
+            ];
+            this.classCode = '';
           })
           .catch(({ message, response, status }) => {
             this.isFindLoading = false;
@@ -123,7 +139,7 @@ export default {
     },
     changeClassCode({ target: { value } }) {
       const code = value.trim();
-      if (code === '') {
+      if (code == '') {
         this.message = {
           success: false,
           message: '',
@@ -135,7 +151,7 @@ export default {
       this.creditClasses = this.creditClasses.map((item) => ({
         ...item,
         ...(this.classCodes.includes(item.code)
-          ? { action: DELETE_ACTION }
+          ? { action: DELETE_ACTION, action_status: '' }
           : {}),
       }));
     },
@@ -148,38 +164,34 @@ export default {
     },
     async submit() {
       if (confirm('Bạn có muốn gửi đăng ký về hệ thống không?')) {
-        creditAPI
-          .register({
-            creditClasses: this.creditClasses.map(({ action, code }) => ({
-              action,
-              code,
-            })),
-          })
-          .then(({ data, success, message }) => {
-            if (success) {
-              this.classCodes = [];
-              this.message = {
-                success: true,
-                content: message,
-              };
-              this.creditClasses = data.map((item) => ({
-                ...item,
-                action: '',
-                action_status: SUCCESS_ACTION_STATUS,
-              }));
-            } else {
-              this.message = {
-                success: false,
-                content: message,
-              };
-              this.creditClasses = this.creditClasses.map((item) => ({
-                ...item,
-                action: '',
-                action_status: FAIL_ACTION_STATUS,
-              }));
-            }
-          })
-          .catch();
+        const { data, success, message } = await creditAPI.register({
+          creditClasses: this.creditClasses.map(({ action, code }) => ({
+            action,
+            code,
+          })),
+        });
+        this.classCodes = [];
+        if (success) {
+          this.message = {
+            success: true,
+            content: message,
+          };
+          this.creditClasses = data.map((item) => ({
+            ...item,
+            action: '',
+            action_status: SUCCESS_ACTION_STATUS,
+          }));
+        } else {
+          this.message = {
+            success: false,
+            content: message,
+          };
+          this.creditClasses = this.creditClasses.map((item) => ({
+            ...item,
+            action: '',
+            action_status: FAIL_ACTION_STATUS,
+          }));
+        }
       }
     },
   },
@@ -199,11 +211,14 @@ export default {
             </div>
           </div>
           <div class="card-body">
-            <div style="position: relative">
+            <div style="position: relative; height: 100%">
               <div v-if="isLoadingData" class="wrapper-loading">
                 <img src="./../assets/loading.gif" alt="" />
               </div>
-              <div :class="isLoadingData ? 'opacity-50' : ''">
+              <div
+                :class="isLoadingData ? 'opacity-50' : ''"
+                style="overflow-y: auto; height: 100%"
+              >
                 <div class="form-inline">
                   <input
                     type="text"
@@ -217,7 +232,7 @@ export default {
                     @click="fetchCreditClass"
                     :disabled="isFindLoading"
                   >
-                    ĐK lớp
+                    Đăng ký
                   </button>
                 </div>
                 <div
@@ -226,178 +241,176 @@ export default {
                 >
                   {{ message.content }}
                 </div>
-                <div class="mt-2 table-responsive">
-                  <table class="table table-bordered">
-                    <tr>
-                      <td class="p-0">
-                        <table class="table mb-0">
-                          <thead>
-                            <tr class="table-borderless">
-                              <td colspan="10" class="border-0">
-                                <div class="text-header-table mb-0 text-center">
-                                  Danh sách lớp đăng ký
-                                </div>
-                              </td>
-                            </tr>
-                            <tr class="table-bordered align-middle">
-                              <th>Mã lớp</th>
-                              <th>Tên lớp</th>
-                              <th>Mã học phần</th>
-                              <th>Trạng thái ĐK</th>
-                              <th>Thực hiện</th>
-                              <th>Tín chỉ</th>
-                              <th>Hành động</th>
-                            </tr>
-                          </thead>
-                          <tbody class="table-bordered">
-                            <template v-if="creditClasses.length">
-                              <template
-                                v-for="{
-                                  code,
-                                  subject,
-                                  action,
-                                  action_status,
-                                } in creditClasses"
-                                v-bind:key="code"
-                              >
-                                <tr class="align-middle">
-                                  <td>
-                                    {{ code }}
-                                  </td>
-                                  <td>
-                                    {{ subject.name }}
-                                  </td>
-                                  <td>
-                                    <div v-if="subject">
-                                      {{ subject.code }}
-                                    </div>
-                                  </td>
-                                  <td>{{ action_status }}</td>
-                                  <td>
-                                    {{ ACTION_LABEL[action] }}
-                                  </td>
-                                  <td>
-                                    <div v-if="subject">
-                                      {{ subject.credit }}
-                                    </div>
-                                  </td>
-                                  <td class="text-center">
-                                    <input
-                                      type="checkbox"
-                                      class="checkbox-custom"
-                                      :checked="classCodes.includes(code)"
-                                      @change="triggerCheck($event, code)"
-                                    />
-                                  </td>
-                                </tr>
-                              </template>
-                              <tr>
-                                <td class="text-right" colspan="10">
-                                  <span class="pr-5" style="font-size: 19px">
-                                    Tổng số TC đăng ký: {{ totalCredit }}
-                                  </span>
+                <table class="table table-bordered">
+                  <tr>
+                    <td class="p-0">
+                      <table class="table mb-0">
+                        <thead>
+                          <tr class="table-borderless">
+                            <td colspan="10" class="border-0">
+                              <div class="text-header-table mb-0 text-center">
+                                Danh sách lớp đăng ký
+                              </div>
+                            </td>
+                          </tr>
+                          <tr class="table-bordered align-middle">
+                            <th>Mã lớp</th>
+                            <th>Tên lớp</th>
+                            <th>Mã học phần</th>
+                            <th>Trạng thái đăng ký</th>
+                            <th>Thực hiện</th>
+                            <th>Tín chỉ</th>
+                            <th>Hành động</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-bordered">
+                          <template v-if="creditClasses.length">
+                            <template
+                              v-for="{
+                                code,
+                                subject,
+                                action,
+                                action_status,
+                              } in creditClasses"
+                              v-bind:key="code"
+                            >
+                              <tr class="align-middle">
+                                <td>
+                                  {{ code }}
                                 </td>
-                              </tr>
-                              <tr>
-                                <td class="text-right" colspan="10">
-                                  <div class="py-1">
-                                    <button
-                                      type="submit"
-                                      class="btn btn-outline-danger"
-                                      form="delete-class"
-                                      @click="removeClass"
-                                      :disabled="!classCodes.length"
-                                    >
-                                      Xóa các lớp đã chọn
-                                    </button>
+                                <td>
+                                  {{ subject.name }}
+                                </td>
+                                <td>
+                                  <div v-if="subject">
+                                    {{ subject.code }}
                                   </div>
                                 </td>
+                                <td>{{ action_status }}</td>
+                                <td>
+                                  {{ ACTION_LABEL[action] }}
+                                </td>
+                                <td>
+                                  <div v-if="subject">
+                                    {{ subject.credit }}
+                                  </div>
+                                </td>
+                                <td class="text-center">
+                                  <input
+                                    type="checkbox"
+                                    class="checkbox-custom"
+                                    :checked="classCodes.includes(code)"
+                                    @change="triggerCheck($event, code)"
+                                  />
+                                </td>
                               </tr>
                             </template>
-                            <tr v-else>
-                              <td
-                                class="fw-light text-center no-data-text"
-                                colspan="10"
-                              >
-                                Không có lớp tín chỉ nào
+                            <tr>
+                              <td class="text-right" colspan="10">
+                                <span class="pr-5" style="font-size: 19px">
+                                  Tổng số TC đăng ký: {{ totalCredit }}
+                                </span>
                               </td>
                             </tr>
-                          </tbody>
-                        </table>
-                        <table class="mb-0 table">
-                          <thead>
-                            <tr class="table-borderless">
-                              <td colspan="5">
-                                <div class="text-header-table mb-0 text-center">
-                                  Thời khóa biểu các lớp đăng ký
+                            <tr>
+                              <td class="text-right" colspan="10">
+                                <div class="py-1">
+                                  <button
+                                    type="submit"
+                                    class="btn btn-outline-danger"
+                                    form="delete-class"
+                                    @click="removeClass"
+                                    :disabled="!classCodes.length"
+                                  >
+                                    Xóa các lớp đã chọn
+                                  </button>
                                 </div>
                               </td>
                             </tr>
-                            <tr class="table-bordered">
-                              <th>Thứ học</th>
-                              <th>Buổi học</th>
-                              <th>Phòng học</th>
-                              <th>Lớp học</th>
-                            </tr>
-                          </thead>
-                          <tbody class="table-bordered">
-                            <template v-if="creditClasses.length">
-                              <template
-                                v-for="{
-                                  code,
-                                  schedules,
-                                  study_room,
-                                } in creditClasses"
+                          </template>
+                          <tr v-else>
+                            <td
+                              class="fw-light text-center no-data-text"
+                              colspan="10"
+                            >
+                              Không có lớp tín chỉ nào
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <table class="mb-0 table">
+                        <thead>
+                          <tr class="table-borderless">
+                            <td colspan="5">
+                              <div class="text-header-table mb-0 text-center">
+                                Thời khóa biểu các lớp đăng ký
+                              </div>
+                            </td>
+                          </tr>
+                          <tr class="table-bordered">
+                            <th>Thứ học</th>
+                            <th>Buổi học</th>
+                            <th>Phòng học</th>
+                            <th>Lớp học</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-bordered">
+                          <template v-if="creditClasses.length">
+                            <template
+                              v-for="{
+                                code,
+                                schedules,
+                                study_room,
+                              } in creditClasses"
+                            >
+                              <tr
+                                v-for="{ id, weekday, time } in schedules"
+                                :key="id"
                               >
-                                <tr
-                                  v-for="{ id, weekday, time } in schedules"
-                                  :key="id"
-                                >
-                                  <td>
-                                    {{
-                                      WEEKDAYS.find(
-                                        ({ value }) => value == weekday,
-                                      )?.label
-                                    }}
-                                  </td>
-                                  <td>
-                                    <div v-if="time">
-                                      {{ time == 1 ? 'Sáng' : 'Chiều' }}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <div v-if="study_room">
-                                      {{ study_room.name ?? '' }}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    {{ code }}
-                                  </td>
-                                </tr>
-                              </template>
+                                <td>
+                                  {{
+                                    WEEKDAYS.find(
+                                      ({ value }) => value == weekday,
+                                    )?.label
+                                  }}
+                                </td>
+                                <td>
+                                  <div v-if="time">
+                                    {{ time == 1 ? 'Sáng' : 'Chiều' }}
+                                  </div>
+                                </td>
+                                <td>
+                                  <div v-if="study_room">
+                                    {{ study_room.name ?? '' }}
+                                  </div>
+                                </td>
+                                <td>
+                                  {{ code }}
+                                </td>
+                              </tr>
                             </template>
-                            <tr v-else>
-                              <td
-                                class="fw-light text-center no-data-text"
-                                colspan="5"
-                              >
-                                Không có thời khóa biểu các lớp đăng ký
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-                <div class="row">
-                  <div class="col-12 text-center">
-                    <button class="btn btn-primary" @click="submit">
-                      Gửi đăng ký
-                    </button>
-                  </div>
-                </div>
+                          </template>
+                          <tr v-else>
+                            <td
+                              class="fw-light text-center no-data-text"
+                              colspan="5"
+                            >
+                              Không có thời khóa biểu các lớp đăng ký
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
               </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="col-12 text-center">
+              <button class="btn btn-primary" @click="submit">
+                Gửi đăng ký
+              </button>
             </div>
           </div>
         </div>

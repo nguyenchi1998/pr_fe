@@ -24,7 +24,6 @@ export default {
         subject_code: '',
         subject_name: '',
         note: '',
-        status: '',
         max_register: '',
         registered_student: '',
       },
@@ -119,9 +118,8 @@ export default {
                       <td>Mã học phần</td>
                       <td>Tên học phần</td>
                       <td>Ghi chú</td>
-                      <td>Trạng thái</td>
-                      <td>Max ĐK</td>
-                      <td>Đã ĐK</td>
+                      <td>Đăng ký tối đa</td>
+                      <td>Đã đăng ký</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -135,7 +133,6 @@ export default {
                           <input
                             class="form-control border-0"
                             type="text"
-                            placeholder="Nhập từ khóa"
                             :name="key"
                             :value="value"
                             @keyup="search"
@@ -170,7 +167,6 @@ export default {
                         code,
                         subject,
                         note,
-                        status,
                         max_register,
                         students,
                         study_room,
@@ -192,13 +188,6 @@ export default {
                           {{ note }}
                         </th>
                         <th>
-                          {{
-                            CREDIT_CLASS_STATUS.find(
-                              ({ value }) => value === status,
-                            )?.label
-                          }}
-                        </th>
-                        <th>
                           {{ max_register }}
                         </th>
                         <th>
@@ -212,9 +201,9 @@ export default {
                               Tên lớp: <b>{{ subject.name }}</b>
                             </div>
                             <div>
-                              Khoa/viện:
+                              Viện quản lý:
                               <b v-if="subject && subject?.department?.academy">
-                                {{ subject.department.academy.code }}
+                                {{ subject.department.academy.name }}
                               </b>
                             </div>
                           </div>
@@ -243,7 +232,7 @@ export default {
                                   </td>
                                   <td>
                                     <div v-if="time">
-                                      {{ time === 1 ? 'Sáng' : 'Chiều' }}
+                                      {{ time == 1 ? 'Sáng' : 'Chiều' }}
                                     </div>
                                   </td>
                                   <td>

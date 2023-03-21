@@ -110,13 +110,13 @@ export default {
                 <table class="table table-sm table-bordered">
                   <thead>
                     <tr class="table-bordered align-middle">
-                      <th>Mã HP</th>
-                      <th>Tên HP</th>
-                      <th>Bắt buộc</th>
+                      <th>Mã học phần</th>
+                      <th>Tên học phần</th>
+                      <!-- <th>Bắt buộc</th> -->
                       <th>Tín chỉ</th>
                       <th>Điểm chữ</th>
                       <th>Điểm số</th>
-                      <th>Viện/Khoa</th>
+                      <th>Viện quản lý</th>
                     </tr>
                   </thead>
                   <tbody class="table-bordered">
@@ -146,7 +146,7 @@ export default {
                           v-for="(
                             {
                               subject: { code, name, credit, department },
-                              force,
+                              // force,
                               number_mark,
                               text_mark,
                             },
@@ -160,11 +160,11 @@ export default {
                           <td>
                             {{ name }}
                           </td>
-                          <td class="text-center">
+                          <!-- <td class="text-center">
                             <i v-if="force" class="fa fa-check-square"></i>
                             <i v-else class="fa fa-square"></i>
-                          </td>
-                          <td class="text-center">{{ credit }}</td>
+                          </td> -->
+                          <td>{{ credit }}</td>
                           <td>{{ text_mark }}</td>
                           <td>{{ number_mark }}</td>
                           <td>{{ department.academy.name }}</td>

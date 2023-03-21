@@ -20,7 +20,6 @@ export default {
       const {
         data: { data, success, message },
       } = await signIn(this.credential);
-      console.log(success);
       if (success) {
         setAuthToken(data);
         const { returnUrl } = this.$route.query;

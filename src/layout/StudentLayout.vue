@@ -82,7 +82,7 @@ export default {
           </li>
           <li class="text-capitalize pt-5">
             <router-link :to="PAGE_PATH.REGISTER_CREDIT_CLASS_PAGE">
-              Đăng ký tín chỉ
+              Danh sách lớp mở
             </router-link>
           </li>
         </template>
