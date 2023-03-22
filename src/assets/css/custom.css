@@ -85,6 +85,7 @@ td::first-letter {
 
 .text-message {
   min-height: 40px;
+  font-size: 20px;
 }
 .table-no-width {
   min-width: unset;

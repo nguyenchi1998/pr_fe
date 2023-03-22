@@ -51,6 +51,9 @@ export default {
     querySearch() {
       return removeEmptyObjects(this.filter);
     },
+    submitDisable() {
+      return !this.creditClasses.some((creditClass) => creditClass.action);
+    },
   },
   created() {
     this.fetchMyCreditClasses();
@@ -96,7 +99,7 @@ export default {
             if (this.creditClasses.find(({ code }) => code == data.code)) {
               this.message = {
                 success: false,
-                content: 'Lớp đã tồn tại trong danh sách',
+                content: `Lớp <b>${data.code}</b> đã tồn tại trong danh sách đăng ký`,
               };
               return;
             }
@@ -112,13 +115,13 @@ export default {
             if (conflictClass != undefined) {
               this.message = {
                 success: false,
-                content: `Thời khóa biểu lớp ${data.code} >< ${conflictClass.code} bị xung đột trong danh sách`,
+                content: `Thời khóa biểu lớp <b>${data.code}</b> >< <b>${conflictClass.code}</b> bị xung đột trong danh sách đăng ký`,
               };
               return;
             }
             this.creditClasses = [
-              { ...data, action: INSERT_ACTION },
               ...this.creditClasses,
+              { ...data, action: INSERT_ACTION, action_status: '' },
             ];
             this.classCode = '';
           })
@@ -188,8 +191,10 @@ export default {
           };
           this.creditClasses = this.creditClasses.map((item) => ({
             ...item,
+            action_status: item.action
+              ? FAIL_ACTION_STATUS
+              : SUCCESS_ACTION_STATUS,
             action: '',
-            action_status: FAIL_ACTION_STATUS,
           }));
         }
       }
@@ -237,9 +242,9 @@ export default {
                 </div>
                 <div
                   :class="message.success ? 'text-success' : 'text-danger'"
-                  class="h5 mb-0 py-2 text-message"
+                  class="mb-0 py-2 text-message"
                 >
-                  {{ message.content }}
+                  <span v-html="message.content"></span>
                 </div>
                 <table class="table table-bordered">
                   <tr>
@@ -257,7 +262,7 @@ export default {
                             <th>Mã lớp</th>
                             <th>Tên lớp</th>
                             <th>Mã học phần</th>
-                            <th>Trạng thái đăng ký</th>
+                            <th>Trạng thái thực hiện</th>
                             <th>Thực hiện</th>
                             <th>Tín chỉ</th>
                             <th>Hành động</th>
@@ -408,7 +413,11 @@ export default {
           </div>
           <div class="card-footer">
             <div class="col-12 text-center">
-              <button class="btn btn-primary" @click="submit">
+              <button
+                class="btn btn-primary"
+                @click="submit"
+                :disabled="submitDisable"
+              >
                 Gửi đăng ký
               </button>
             </div>
