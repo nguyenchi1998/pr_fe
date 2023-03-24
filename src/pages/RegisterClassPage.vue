@@ -9,6 +9,7 @@ import {
 } from '../config/constants.js';
 import Paginate from 'vuejs-paginate-next';
 import Swal from 'sweetalert2';
+import moment from 'moment';
 
 export default {
   components: {
@@ -17,7 +18,7 @@ export default {
   data() {
     return {
       isLoadingData: false,
-      perPage: 3,
+      perPage: 10,
       page: 1,
       filter: {
         class_code: '',
@@ -26,6 +27,8 @@ export default {
         note: '',
         max_register: '',
         registered_student: '',
+        start_date: '',
+        end_date: '',
       },
       creditClasses: [],
       CREDIT_CLASS_STATUS: CREDIT_CLASS_STATUS,
@@ -82,6 +85,13 @@ export default {
     }, 800),
     changePage(page) {
       this.page = page;
+      this.scrollToHeader();
+    },
+    scrollToHeader() {
+      this.$refs['header'].scrollIntoView({ behavior: 'smooth' });
+    },
+    formatDate(date) {
+      return moment(date).format('D/MM/Y', { trim: false });
     },
   },
 };
@@ -113,13 +123,15 @@ export default {
               >
                 <table class="table-bordered table">
                   <thead>
-                    <tr class="align-middle">
+                    <tr class="align-middle" ref="header">
                       <td>Mã lớp</td>
                       <td>Mã học phần</td>
                       <td>Tên học phần</td>
                       <td>Ghi chú</td>
                       <td>Đăng ký tối đa</td>
                       <td>Đã đăng ký</td>
+                      <td>Thời gian bắt đầu</td>
+                      <td>Thời gian kết thúc</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -171,6 +183,8 @@ export default {
                         students,
                         study_room,
                         schedules,
+                        start_date,
+                        end_date,
                       } in creditClassPaginate"
                       v-bind:key="code"
                     >
@@ -193,6 +207,12 @@ export default {
                         <th>
                           {{ students.length }}
                         </th>
+                        <th>
+                          {{ start_date ? formatDate(start_date) : '' }}
+                        </th>
+                        <th>
+                          {{ end_date ? formatDate(end_date) : '' }}
+                        </th>
                       </tr>
                       <tr>
                         <td colspan="9" class="p-0">
@@ -211,8 +231,8 @@ export default {
                             <table class="table-sm mb-0 table">
                               <tbody>
                                 <tr>
+                                  <td>Thứ trong tuần</td>
                                   <td>Buổi học</td>
-                                  <td>Thời gian</td>
                                   <td>Phòng học</td>
                                 </tr>
                                 <tr

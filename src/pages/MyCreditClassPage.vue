@@ -7,6 +7,8 @@ const SUCCESS_ACTION_STATUS = 'Thành công';
 const FAIL_ACTION_STATUS = 'Thất bại';
 import { CREDIT_CLASS_STATUS, WEEKDAYS } from '../config/constants.js';
 import Swal from 'sweetalert2';
+import moment from 'moment';
+import 'moment/locale/vi';
 
 const ACTION_LABEL = {
   [INSERT_ACTION]: 'Đăng ký',
@@ -51,8 +53,11 @@ export default {
     querySearch() {
       return removeEmptyObjects(this.filter);
     },
-    submitDisable() {
+    submitDisabled() {
       return !this.creditClasses.some((creditClass) => creditClass.action);
+    },
+    findCreditClassDisabled() {
+      return !this.classCode;
     },
   },
   created() {
@@ -82,6 +87,14 @@ export default {
     },
     fetchCreditClass: function () {
       if (this.classCode) {
+        // kiểm tra đã tồn tại trong danh sách hiện tại
+        if (this.creditClasses.find(({ code }) => code == this.classCode)) {
+          this.message = {
+            success: false,
+            content: `Lớp <b>${this.classCode}</b> đã đăng ký`,
+          };
+          return;
+        }
         this.isFindLoading = true;
         creditAPI
           .fetchCreditClass(this.classCode)
@@ -95,27 +108,20 @@ export default {
               return;
             }
             this.message = { success: false, content: '' };
-            // kiểm tra đã tồn tại trong danh sách hiện tại
-            if (this.creditClasses.find(({ code }) => code == data.code)) {
-              this.message = {
-                success: false,
-                content: `Lớp <b>${data.code}</b> đã tồn tại trong danh sách đăng ký`,
-              };
-              return;
-            }
             // kiểm tra thời khóa biểu trùng
-            const conflictClass = this.creditClasses.find(({ schedules }) =>
-              schedules.some(({ time, weekday }) =>
-                data.schedules.some(
-                  (schedule) =>
-                    schedule.time == time && schedule.weekday == weekday,
-                ),
-              ),
+            const conflictClass = this.creditClasses.find(
+              ({ schedules, end_date }) =>
+                schedules.some(({ time, weekday }) =>
+                  data.schedules.some(
+                    (schedule) =>
+                      schedule.time == time && schedule.weekday == weekday,
+                  ),
+                ) && end_date > data.start_date,
             );
             if (conflictClass != undefined) {
               this.message = {
                 success: false,
-                content: `Thời khóa biểu lớp <b>${data.code}</b> >< <b>${conflictClass.code}</b> bị xung đột trong danh sách đăng ký`,
+                content: `Thời khóa biểu lớp <b>${data.code}</b> >< <b>${conflictClass.code}</b> bị xung đột`,
               };
               return;
             }
@@ -199,6 +205,9 @@ export default {
         }
       }
     },
+    formatDate(date) {
+      return moment(date).format('DD/MM/YYYY', { trim: false });
+    },
   },
 };
 </script>
@@ -226,7 +235,7 @@ export default {
               >
                 <div class="form-inline">
                   <input
-                    type="text"
+                    type="search"
                     class="form-control"
                     placeholder="Nhập mã lớp"
                     :value="classCode"
@@ -235,7 +244,7 @@ export default {
                   <button
                     class="ml-2 btn btn-outline-info"
                     @click="fetchCreditClass"
-                    :disabled="isFindLoading"
+                    :disabled="isFindLoading || findCreditClassDisabled"
                   >
                     Đăng ký
                   </button>
@@ -346,17 +355,19 @@ export default {
                       <table class="mb-0 table">
                         <thead>
                           <tr class="table-borderless">
-                            <td colspan="5">
+                            <td colspan="7">
                               <div class="text-header-table mb-0 text-center">
                                 Thời khóa biểu các lớp đăng ký
                               </div>
                             </td>
                           </tr>
                           <tr class="table-bordered">
+                            <th>Lớp học</th>
+                            <th>Phòng học</th>
+                            <th>Thời gian bắt đầu</th>
+                            <th>Thời gian kết thúc</th>
                             <th>Thứ học</th>
                             <th>Buổi học</th>
-                            <th>Phòng học</th>
-                            <th>Lớp học</th>
                           </tr>
                         </thead>
                         <tbody class="table-bordered">
@@ -365,13 +376,41 @@ export default {
                               v-for="{
                                 code,
                                 schedules,
+                                start_date,
+                                end_date,
                                 study_room,
                               } in creditClasses"
                             >
                               <tr
-                                v-for="{ id, weekday, time } in schedules"
+                                v-for="(
+                                  { id, weekday, time }, index
+                                ) in schedules"
                                 :key="id"
                               >
+                                <td
+                                  :rowspan="schedules.length"
+                                  v-if="index == 0"
+                                >
+                                  {{ code }}
+                                </td>
+                                <td
+                                  :rowspan="schedules.length"
+                                  v-if="index == 0"
+                                >
+                                  {{ study_room ? study_room.name : '' }}
+                                </td>
+                                <td
+                                  :rowspan="schedules.length"
+                                  v-if="index == 0"
+                                >
+                                  {{ start_date ? formatDate(start_date) : '' }}
+                                </td>
+                                <td
+                                  :rowspan="schedules.length"
+                                  v-if="index == 0"
+                                >
+                                  {{ end_date ? formatDate(end_date) : '' }}
+                                </td>
                                 <td>
                                   {{
                                     WEEKDAYS.find(
@@ -384,21 +423,13 @@ export default {
                                     {{ time == 1 ? 'Sáng' : 'Chiều' }}
                                   </div>
                                 </td>
-                                <td>
-                                  <div v-if="study_room">
-                                    {{ study_room.name ?? '' }}
-                                  </div>
-                                </td>
-                                <td>
-                                  {{ code }}
-                                </td>
                               </tr>
                             </template>
                           </template>
                           <tr v-else>
                             <td
                               class="fw-light text-center no-data-text"
-                              colspan="5"
+                              colspan="7"
                             >
                               Không có thời khóa biểu các lớp đăng ký
                             </td>
@@ -416,7 +447,7 @@ export default {
               <button
                 class="btn btn-primary"
                 @click="submit"
-                :disabled="submitDisable"
+                :disabled="submitDisabled"
               >
                 Gửi đăng ký
               </button>
